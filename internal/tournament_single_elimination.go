@@ -14,14 +14,13 @@ type EliminationMatchMaker struct {
 // specific settings.
 //
 // Given the same entries and settings, this method always
-// returns the same slice of rounds. Any RNG values are
-// seeded by a value from the settings.
+// returns the same MatchList, RankingGraph and final Ranking.
+// Any RNG values are seeded by a value from the settings.
 //
 // Can return an error when the ranking is empty or
 // invalid settings are passed.
 func (m *EliminationMatchMaker) MakeMatches(entries Ranking, settings interface{}) (*MatchList, *RankingGraph, Ranking, error) {
-	rankingGraph := NewRankingGraph()
-	rankingGraph.AddVertex(entries)
+	rankingGraph := NewRankingGraph(entries)
 
 	m.WinnerRankings = make(map[*Match]*WinnerRanking)
 

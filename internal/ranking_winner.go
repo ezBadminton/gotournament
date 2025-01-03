@@ -1,7 +1,7 @@
 package internal
 
 // A WinnerRanking ranks the two participants of a
-// [tournament.Match] into winner and loser.
+// Match into winner and loser.
 type WinnerRanking struct {
 	BaseRanking
 

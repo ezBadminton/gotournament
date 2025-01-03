@@ -79,11 +79,12 @@ type RankingGraph struct {
 	DependencyGraph[Ranking]
 }
 
-func NewRankingGraph() *RankingGraph {
+func NewRankingGraph(root Ranking) *RankingGraph {
 	graph := DependencyGraph[Ranking]{
 		Graph: graph.New(getNodeId[Ranking], graph.Directed()),
 	}
 	rankingGraph := &RankingGraph{DependencyGraph: graph}
+	rankingGraph.AddVertex(root)
 	return rankingGraph
 }
 
