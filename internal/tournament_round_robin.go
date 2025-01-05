@@ -8,7 +8,7 @@ type RoundRobinMatchMaker struct {
 }
 
 // Creates the matches of a round robin tournament.
-// The RoundRobinSettings define a Passes int controling
+// The RoundRobinSettings define a Passes int controlling
 // how often all matchups are played through.
 func (m *RoundRobinMatchMaker) MakeMatches(entries Ranking, settings interface{}) (*MatchList, *RankingGraph, Ranking, error) {
 	rankingGraph := NewRankingGraph(entries)
