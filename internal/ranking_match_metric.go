@@ -38,6 +38,34 @@ func (r *MatchMetricRanking) UpdateRanks() {
 	r.ProcessUpdate(ranks)
 }
 
+func NewMatchMetricRanking(
+	entries Ranking,
+	matches []*Match,
+	rankingGraph *RankingGraph,
+) *MatchMetricRanking {
+	entrySlots := entries.GetRanks()
+	players := make([]Player, 0, len(entrySlots))
+
+	for _, s := range entrySlots {
+		player := s.Player()
+		if player != nil {
+			players = append(players, player)
+		}
+	}
+
+	ranking := &MatchMetricRanking{
+		BaseTieableRanking: NewBaseTieableRanking(0),
+		players:            players,
+		matches:            matches,
+	}
+	ranking.UpdateRanks()
+
+	rankingGraph.AddVertex(ranking)
+	rankingGraph.AddEdge(entries, ranking)
+
+	return ranking
+}
+
 // Attempts to break the tie between players with the same amount of wins.
 //
 // The tie-break operates in this order:

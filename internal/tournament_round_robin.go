@@ -1,5 +1,7 @@
 package internal
 
+import "slices"
+
 type RoundRobinSettings struct {
 	Passes int
 }
@@ -17,6 +19,9 @@ func (m *RoundRobinMatchMaker) MakeMatches(entries Ranking, settings interface{}
 	entrySlots := evenEntries.GetRanks()
 
 	numPasses := settings.(*RoundRobinSettings).Passes
+	if numPasses < 1 {
+		numPasses = 1
+	}
 	numRounds := len(entrySlots) - 1
 	numMatches := len(entrySlots) / 2
 
@@ -34,9 +39,9 @@ func (m *RoundRobinMatchMaker) MakeMatches(entries Ranking, settings interface{}
 
 	matchList := &MatchList{Rounds: rounds, Matches: matches}
 
-	// TODO final ranking
+	finalRanking := NewMatchMetricRanking(evenEntries, matches, rankingGraph)
 
-	return matchList, rankingGraph, nil, nil
+	return matchList, rankingGraph, finalRanking, nil
 }
 
 func createRound(entrySlots []*Slot, passI, roundI int) *Round {
@@ -86,4 +91,100 @@ func roundRobinCircleIndex(index, length, round int) int {
 	index %= length - 1
 	index += 1
 	return index
+}
+
+type RoundRobinEditingPolicy struct {
+	editableMatches []*Match
+	matches         []*Match
+}
+
+// Returns the comprehensive list of matches that are editable
+func (e *RoundRobinEditingPolicy) EditableMatches() []*Match {
+	return e.editableMatches
+}
+
+// Updates the return value of EditableMatches
+func (e *RoundRobinEditingPolicy) Update() {
+	editableMatches := make([]*Match, 0, len(e.matches))
+	for _, m := range e.matches {
+		winner, _ := m.GetWinner()
+		wo := m.IsWalkover()
+		bye := m.HasBye()
+		if winner != nil && !wo && !bye {
+			editableMatches = append(editableMatches, m)
+		}
+	}
+
+	e.editableMatches = editableMatches
+}
+
+type RoundRobinWithdrawalPolicy struct {
+	tournament *BaseTournament
+}
+
+// Withdraws the given player from the tournament.
+// The specific matches that the player was withdrawn from
+// are returned.
+func (w *RoundRobinWithdrawalPolicy) WithdrawPlayer(player Player) []*Match {
+	matches := w.tournament.MatchesOfPlayer(player)
+
+	allMatchesComplete := true
+	for _, m := range matches {
+		winner, _ := m.GetWinner()
+		if winner == nil {
+			allMatchesComplete = false
+			break
+		}
+	}
+
+	if allMatchesComplete {
+		return []*Match{}
+	} else {
+		return matches
+	}
+}
+
+// Attempts to reenter the player into the tournament.
+// On success the specific matches that the player
+// was reentered into are returned.
+func (w *RoundRobinWithdrawalPolicy) ReenterPlayer(player Player) []*Match {
+	withdrawnMatches := make([]*Match, 0, 5)
+	for _, m := range w.tournament.MatchList.Matches {
+		if slices.Contains(m.WithdrawnPlayers, player) {
+			withdrawnMatches = append(withdrawnMatches, m)
+		}
+	}
+
+	return withdrawnMatches
+}
+
+type RoundRobin struct {
+	BaseTournament
+}
+
+func NewRoundRobin(entries Ranking, passes int) *RoundRobin {
+	settings := &RoundRobinSettings{Passes: passes}
+	matchMaker := &RoundRobinMatchMaker{}
+	matchList, rankingGraph, finalRanking, _ := matchMaker.MakeMatches(entries, settings)
+
+	editingPolicy := &RoundRobinEditingPolicy{matches: matchList.Matches}
+	editingPolicy.Update()
+
+	tournament := BaseTournament{
+		Entries:       entries,
+		FinalRanking:  finalRanking,
+		MatchMaker:    matchMaker,
+		MatchList:     matchList,
+		RankingGraph:  rankingGraph,
+		EditingPolicy: editingPolicy,
+	}
+
+	tournament.WithdrawalPolicy = &RoundRobinWithdrawalPolicy{
+		tournament: &tournament,
+	}
+
+	roundRobin := &RoundRobin{BaseTournament: tournament}
+	roundRobin.Update(nil)
+
+	return roundRobin
 }

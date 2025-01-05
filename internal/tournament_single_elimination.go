@@ -349,7 +349,6 @@ func NewSingleElimination(entries Ranking) *SingleElimination {
 		tournament:       singleElimination,
 		eliminationGraph: eliminationGraph,
 	}
-
 	singleElimination.Update(nil)
 
 	return singleElimination
