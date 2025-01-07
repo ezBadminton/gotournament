@@ -17,11 +17,15 @@ func (m *MatchMetrics) UpdateDifferences() {
 // Creates a MatchMetrics struct for each player in the matches.
 // If the players slice is not nil/empty only the matches where both
 // opponents are in the slice are counted.
-func CreateMetrics(matches []*Match, players []Player) map[Player]*MatchMetrics {
+func CreateMetrics(
+	matches []*Match,
+	players []Player,
+	walkoverScore Score,
+) map[Player]*MatchMetrics {
 	metrics := make(map[Player]*MatchMetrics)
 
 	for _, m := range matches {
-		extractMatchMetrics(m, players, metrics)
+		extractMatchMetrics(m, players, metrics, walkoverScore)
 	}
 
 	for _, m := range metrics {
@@ -31,7 +35,12 @@ func CreateMetrics(matches []*Match, players []Player) map[Player]*MatchMetrics 
 	return metrics
 }
 
-func extractMatchMetrics(match *Match, players []Player, metrics map[Player]*MatchMetrics) {
+func extractMatchMetrics(
+	match *Match,
+	players []Player,
+	metrics map[Player]*MatchMetrics,
+	walkoverScore Score,
+) {
 	p1 := match.Slot1.Player()
 	p2 := match.Slot2.Player()
 	if p1 == nil || p2 == nil {
@@ -63,7 +72,7 @@ func extractMatchMetrics(match *Match, players []Player, metrics map[Player]*Mat
 	}
 
 	m1.NumMatches += 1
-	m1.NumMatches += 1
+	m2.NumMatches += 1
 
 	if winner == p1 {
 		m1.Wins += 1
@@ -73,8 +82,17 @@ func extractMatchMetrics(match *Match, players []Player, metrics map[Player]*Mat
 		m1.Losses += 1
 	}
 
-	score1 := match.Score.Points1()
-	score2 := match.Score.Points2()
+	score := match.Score
+	if score == nil {
+		if winnerSlot == match.Slot1 {
+			score = walkoverScore
+		} else if winnerSlot == match.Slot2 {
+			score = walkoverScore.Invert()
+		}
+	}
+
+	score1 := score.Points1()
+	score2 := score.Points2()
 	for i := range len(score1) {
 		m1.NumSets += 1
 		m2.NumSets += 1
@@ -96,6 +114,17 @@ func extractMatchMetrics(match *Match, players []Player, metrics map[Player]*Mat
 		} else {
 			m2.SetWins += 1
 			m1.SetLosses += 1
+		}
+	}
+}
+
+// Adds zeroed metrics to the metrics map for players which are
+// not already present in the map but are in the players slice
+func addZeroMetrics(metrics map[Player]*MatchMetrics, players []Player) {
+	for _, p := range players {
+		_, ok := metrics[p]
+		if !ok {
+			metrics[p] = &MatchMetrics{}
 		}
 	}
 }

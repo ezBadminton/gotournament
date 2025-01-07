@@ -3,6 +3,7 @@ package internal
 import (
 	"errors"
 	"iter"
+	"strings"
 	"time"
 )
 
@@ -192,6 +193,25 @@ func (m *Match) Id() int {
 	return m.id
 }
 
+func (m *Match) String() string {
+	var sb strings.Builder
+	p1 := m.Slot1.Player()
+	if p1 == nil {
+		sb.WriteString("[Empty]")
+	} else {
+		sb.WriteString(p1.Id())
+	}
+	sb.WriteString(" vs. ")
+	p2 := m.Slot2.Player()
+	if p2 == nil {
+		sb.WriteString("[Empty]")
+	} else {
+		sb.WriteString(p2.Id())
+	}
+
+	return sb.String()
+}
+
 func NewMatch(slot1, slot2 *Slot) *Match {
 	id := NextNodeId()
 
@@ -237,6 +257,10 @@ type Score interface {
 	// first opponent won or the second.
 	// Errors when no winner is determined.
 	GetWinner() (int, error)
+
+	// Returns a new Score that has Points1
+	// and Points2 flipped
+	Invert() Score
 }
 
 // A Round is a list of matches that can be played in

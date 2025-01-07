@@ -3,7 +3,8 @@ package internal
 import "slices"
 
 type RoundRobinSettings struct {
-	Passes int
+	Passes        int
+	WalkoverScore Score
 }
 
 type RoundRobinMatchMaker struct {
@@ -18,7 +19,8 @@ func (m *RoundRobinMatchMaker) MakeMatches(entries Ranking, settings interface{}
 	evenEntries := NewEvenRanking(entries, rankingGraph)
 	entrySlots := evenEntries.GetRanks()
 
-	numPasses := settings.(*RoundRobinSettings).Passes
+	rrSettings := settings.(*RoundRobinSettings)
+	numPasses := rrSettings.Passes
 	if numPasses < 1 {
 		numPasses = 1
 	}
@@ -39,7 +41,7 @@ func (m *RoundRobinMatchMaker) MakeMatches(entries Ranking, settings interface{}
 
 	matchList := &MatchList{Rounds: rounds, Matches: matches}
 
-	finalRanking := NewMatchMetricRanking(evenEntries, matches, rankingGraph)
+	finalRanking := NewMatchMetricRanking(evenEntries, matches, rankingGraph, rrSettings.WalkoverScore)
 
 	return matchList, rankingGraph, finalRanking, nil
 }
@@ -72,10 +74,10 @@ func pickOpponents(entrySlots []*Slot, passI, roundI, matchI int) (*Slot, *Slot)
 	slot1 := entrySlots[i1]
 	slot2 := entrySlots[i2]
 
-	if matchI == 0 && roundI%2 == 0 {
+	if matchI == 0 && roundI%2 != 0 {
 		slot1, slot2 = slot2, slot1
 	}
-	if passI%2 == 0 {
+	if passI%2 != 0 {
 		slot1, slot2 = slot2, slot1
 	}
 
@@ -87,7 +89,9 @@ func roundRobinCircleIndex(index, length, round int) int {
 	if index == 0 {
 		return 0
 	}
-	index += round - 1
+	index -= 1
+	index -= round
+	index += length - 1
 	index %= length - 1
 	index += 1
 	return index
@@ -137,11 +141,19 @@ func (w *RoundRobinWithdrawalPolicy) WithdrawPlayer(player Player) []*Match {
 		}
 	}
 
+	var withdrawnMatches []*Match
+
 	if allMatchesComplete {
-		return []*Match{}
+		withdrawnMatches = []*Match{}
 	} else {
-		return matches
+		withdrawnMatches = matches
 	}
+
+	for _, m := range withdrawnMatches {
+		m.WithdrawnPlayers = append(m.WithdrawnPlayers, player)
+	}
+
+	return withdrawnMatches
 }
 
 // Attempts to reenter the player into the tournament.
@@ -155,6 +167,10 @@ func (w *RoundRobinWithdrawalPolicy) ReenterPlayer(player Player) []*Match {
 		}
 	}
 
+	for _, m := range withdrawnMatches {
+		m.WithdrawnPlayers = slices.DeleteFunc(m.WithdrawnPlayers, func(p Player) bool { return p == player })
+	}
+
 	return withdrawnMatches
 }
 
@@ -162,8 +178,8 @@ type RoundRobin struct {
 	BaseTournament
 }
 
-func NewRoundRobin(entries Ranking, passes int) *RoundRobin {
-	settings := &RoundRobinSettings{Passes: passes}
+func NewRoundRobin(entries Ranking, passes int, walkoverScore Score) *RoundRobin {
+	settings := &RoundRobinSettings{Passes: passes, WalkoverScore: walkoverScore}
 	matchMaker := &RoundRobinMatchMaker{}
 	matchList, rankingGraph, finalRanking, _ := matchMaker.MakeMatches(entries, settings)
 

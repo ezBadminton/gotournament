@@ -11,18 +11,27 @@ import (
 type MatchMetricRanking struct {
 	BaseTieableRanking
 
+	// Each player's metrics which are the basis for the ranks.
+	// The metrics are updated in the UpdateRanks call
+	Metrics map[Player]*MatchMetrics
+
 	players []Player
 	matches []*Match
+
+	walkoverScore Score
 }
 
 func (r *MatchMetricRanking) UpdateRanks() {
-	metrics := CreateMetrics(r.matches, nil)
+	metrics := CreateMetrics(r.matches, nil, r.walkoverScore)
+	addZeroMetrics(metrics, r.players)
+
+	r.Metrics = metrics
 
 	sortedByWins := sortByMetric(r.players, metrics, func(m *MatchMetrics) int { return m.Wins })
 
 	tieBroken := make([][]Player, 0, len(sortedByWins)+5)
 	for _, tie := range sortedByWins {
-		broken := breakTie(metrics, r.matches, tie)
+		broken := r.breakTie(tie)
 		tieBroken = append(tieBroken, broken...)
 	}
 
@@ -42,6 +51,7 @@ func NewMatchMetricRanking(
 	entries Ranking,
 	matches []*Match,
 	rankingGraph *RankingGraph,
+	walkoverScore Score,
 ) *MatchMetricRanking {
 	entrySlots := entries.GetRanks()
 	players := make([]Player, 0, len(entrySlots))
@@ -57,6 +67,7 @@ func NewMatchMetricRanking(
 		BaseTieableRanking: NewBaseTieableRanking(0),
 		players:            players,
 		matches:            matches,
+		walkoverScore:      walkoverScore,
 	}
 	ranking.UpdateRanks()
 
@@ -78,13 +89,14 @@ func NewMatchMetricRanking(
 // The returned list is descending in rank and each nested list is a rank
 // of players. More than one player in a rank means the tie could not be fully
 // broken.
-func breakTie(metrics map[Player]*MatchMetrics, matches []*Match, tie []Player) [][]Player {
+func (r *MatchMetricRanking) breakTie(tie []Player) [][]Player {
+	metrics := r.Metrics
 	tieSize := len(tie)
 	if tieSize == 1 {
 		return [][]Player{tie}
 	}
 	if tieSize == 2 {
-		return breakTwoWayTie(metrics, matches, tie[0], tie[1])
+		return r.breakTwoWayTie(tie[0], tie[1])
 	}
 
 	sortedBySets := sortByMetric(tie, metrics, func(m *MatchMetrics) int { return m.SetDifference })
@@ -93,7 +105,7 @@ func breakTie(metrics map[Player]*MatchMetrics, matches []*Match, tie []Player) 
 		// Break emerged sub-ties
 		subTieBroken := make([][]Player, 0, 5)
 		for _, subTie := range sortedBySets {
-			broken := breakTie(metrics, matches, subTie)
+			broken := r.breakTie(subTie)
 			subTieBroken = append(subTieBroken, broken...)
 		}
 		return subTieBroken
@@ -105,7 +117,7 @@ func breakTie(metrics map[Player]*MatchMetrics, matches []*Match, tie []Player) 
 	subTieBroken := make([][]Player, 0, 5)
 	for _, subTie := range sortedByPoints {
 		if len(subTie) == 2 {
-			broken := breakTwoWayTie(metrics, matches, tie[0], tie[1])
+			broken := r.breakTwoWayTie(tie[0], tie[1])
 			subTieBroken = append(subTieBroken, broken...)
 		} else {
 			subTieBroken = append(subTieBroken, subTie)
@@ -128,9 +140,12 @@ func breakTie(metrics map[Player]*MatchMetrics, matches []*Match, tie []Player) 
 //
 // If none of those criteria are decisive the tie is unbreakable and
 // [[p1, p2]] is returned. Otherwise [[winner],[loser]].
-func breakTwoWayTie(metrics map[Player]*MatchMetrics, matches []*Match, p1, p2 Player) [][]Player {
+func (r *MatchMetricRanking) breakTwoWayTie(p1, p2 Player) [][]Player {
+	metrics := r.Metrics
+	matches := r.matches
 	tie := []Player{p1, p2}
-	directMetrics := CreateMetrics(matches, tie)
+	directMetrics := CreateMetrics(matches, tie, r.walkoverScore)
+	addZeroMetrics(directMetrics, tie)
 
 	metricSorted := sortByMetric(tie, directMetrics, func(m *MatchMetrics) int { return m.Wins })
 	if len(metricSorted) == 2 {
@@ -177,7 +192,7 @@ func sortByMetric(players []Player, metrics map[Player]*MatchMetrics, getter fun
 	slices.SortFunc(sortedMetrics, func(a, b int) int { return cmp.Compare(b, a) })
 
 	sortedPlayers := make([][]Player, 0, len(sortedMetrics))
-	for v := range sortedMetrics {
+	for _, v := range sortedMetrics {
 		sortedPlayers = append(sortedPlayers, buckets[v])
 	}
 

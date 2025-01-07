@@ -2,6 +2,7 @@ package internal
 
 import (
 	"cmp"
+	"fmt"
 	"slices"
 	"strings"
 )
@@ -239,6 +240,28 @@ func (r *BaseTieableRanking) applyTieBreakers(tiedRanks [][]*Slot) [][]*Slot {
 	}
 
 	return tieBrokenRanks
+}
+
+func (r *BaseTieableRanking) String() string {
+	var sb strings.Builder
+
+	for _, r := range r.TiedRanks() {
+		for _, s := range r {
+			player := s.Player()
+			if player == nil {
+				sb.WriteString("Empty slot\n")
+			} else {
+				sb.WriteString(player.Id())
+				sb.WriteRune('\n')
+			}
+		}
+		sb.WriteString("---")
+		sb.WriteRune('\n')
+	}
+
+	fmt.Println(sb.String())
+
+	return sb.String()
 }
 
 func flattenTiedRanks(tiedRanks [][]*Slot) []*Slot {
