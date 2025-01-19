@@ -2,7 +2,6 @@ package internal
 
 import (
 	"cmp"
-	"fmt"
 	"slices"
 	"strings"
 )
@@ -48,6 +47,8 @@ func (r *BaseRanking) At(i int) *Slot {
 	return r.Ranks[i]
 }
 
+func (r *BaseRanking) UpdateRanks() {}
+
 func (r *BaseRanking) AddDependantSlots(slots ...*Slot) {
 	r.dependantSlots = append(r.dependantSlots, slots...)
 }
@@ -63,6 +64,13 @@ func (r *BaseRanking) Id() int {
 func NewBaseRanking() BaseRanking {
 	id := NextNodeId()
 	return BaseRanking{id: id}
+}
+
+// Creates a BaseRanking with the given slots as the ranks
+func NewSlotRanking(slots []*Slot) *BaseRanking {
+	ranking := NewBaseRanking()
+	ranking.Ranks = slots
+	return &ranking
 }
 
 type TieableRanking interface {
@@ -258,8 +266,6 @@ func (r *BaseTieableRanking) String() string {
 		sb.WriteString("---")
 		sb.WriteRune('\n')
 	}
-
-	fmt.Println(sb.String())
 
 	return sb.String()
 }

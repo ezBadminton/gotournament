@@ -18,11 +18,25 @@ type EliminationRanking struct {
 // Should be called whenever a result that influences the
 // ranking becomes known.
 func (r *EliminationRanking) UpdateRanks() {
-	numRounds := len(r.MatchList.Rounds)
+	rounds := make([]*Round, 0, len(r.MatchList.Rounds))
+
+	for _, r := range r.MatchList.Rounds {
+		if len(r.NestedRounds) == 0 {
+			rounds = append(rounds, r)
+		} else {
+			nested := make([]*Round, 0, len(r.NestedRounds))
+			for _, r := range slices.Backward(r.NestedRounds) {
+				nested = append(nested, r)
+			}
+			rounds = append(rounds, nested...)
+		}
+	}
+
+	numRounds := len(rounds)
 
 	ranks := make([][]*Slot, 0, 2*numRounds)
 
-	for _, r := range slices.Backward(r.MatchList.Rounds) {
+	for _, r := range slices.Backward(rounds) {
 		roundRanks := rankRound(r)
 		if len(roundRanks) > 0 {
 			ranks = append(ranks, roundRanks...)
@@ -105,7 +119,7 @@ func RemoveDoubleRanks(ranks [][]*Slot) [][]*Slot {
 func NewEliminationRanking(
 	matchList *MatchList,
 	entries Ranking,
-	finalsRanking Ranking,
+	finalsRankings []Ranking,
 	rankingGraph *RankingGraph,
 ) *EliminationRanking {
 	baseRanking := NewBaseTieableRanking(0)
@@ -115,6 +129,8 @@ func NewEliminationRanking(
 		Entries:            entries,
 	}
 	rankingGraph.AddVertex(ranking)
-	rankingGraph.AddEdge(finalsRanking, ranking)
+	for _, r := range finalsRankings {
+		rankingGraph.AddEdge(r, ranking)
+	}
 	return ranking
 }

@@ -7,6 +7,21 @@ type MatchList struct {
 	Rounds  []*Round
 }
 
+func (l *MatchList) MatchesOfPlayer(player Player) []*Match {
+	matches := make([]*Match, 0, 5)
+	for _, m := range l.Matches {
+		if m.HasDrawnBye() {
+			continue
+		}
+
+		if m.ContainsPlayer(player) {
+			matches = append(matches, m)
+		}
+	}
+
+	return matches
+}
+
 // A MatchMaker initializes a Tournament by defining the matches
 // that are to be played.
 type MatchMaker interface {
@@ -56,6 +71,8 @@ type EditingPolicy interface {
 type Tournament interface {
 	// Update the tournament's slots and rankings.
 	Update(start Ranking)
+
+	GetMatchList() *MatchList
 }
 
 type BaseTournament struct {
@@ -73,6 +90,8 @@ type BaseTournament struct {
 	MatchList        *MatchList
 	WithdrawalPolicy WithdrawalPolicy
 	EditingPolicy    EditingPolicy
+
+	id int
 }
 
 func (t *BaseTournament) Update(start Ranking) {
@@ -87,19 +106,35 @@ func (t *BaseTournament) Update(start Ranking) {
 			s.Update()
 		}
 	}
+
+	t.EditingPolicy.Update()
 }
 
-func (t *BaseTournament) MatchesOfPlayer(player Player) []*Match {
-	matches := make([]*Match, 0, 5)
-	for _, m := range t.MatchList.Matches {
-		if m.HasDrawnBye() {
-			continue
-		}
+func (t *BaseTournament) GetMatchList() *MatchList {
+	return t.MatchList
+}
 
-		if m.ContainsPlayer(player) {
-			matches = append(matches, m)
-		}
+func (t *BaseTournament) Id() int {
+	return t.id
+}
+
+func NewBaseTournament(
+	entries, finalRanking Ranking,
+	matchMaker MatchMaker,
+	matchList *MatchList,
+	rankingGraph *RankingGraph,
+	editingPolicy EditingPolicy,
+	withdrawalPolicy WithdrawalPolicy,
+) BaseTournament {
+	tournament := BaseTournament{
+		Entries:          entries,
+		FinalRanking:     finalRanking,
+		MatchMaker:       matchMaker,
+		MatchList:        matchList,
+		RankingGraph:     rankingGraph,
+		EditingPolicy:    editingPolicy,
+		WithdrawalPolicy: withdrawalPolicy,
+		id:               NextNodeId(),
 	}
-
-	return matches
+	return tournament
 }

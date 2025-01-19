@@ -1,5 +1,7 @@
 package internal
 
+import "slices"
+
 // A WinnerRanking ranks the two participants of a
 // Match into winner and loser.
 type WinnerRanking struct {
@@ -24,7 +26,14 @@ func (r *WinnerRanking) UpdateRanks() {
 	}
 
 	loser := r.Match.OtherSlot(winner)
-	if loser.Bye() != nil && loser.Bye().Drawn {
+
+	overrideDrawnBye := loser.Bye() != nil && loser.Bye().Drawn
+	if overrideDrawnBye {
+		loser = NewByeSlot(false)
+	}
+
+	blockWithdrawnPlayer := slices.Contains(r.Match.WithdrawnSlots(), loser)
+	if blockWithdrawnPlayer {
 		loser = NewByeSlot(false)
 	}
 
@@ -34,30 +43,44 @@ func (r *WinnerRanking) UpdateRanks() {
 }
 
 // Creates a new WinnerRanking
-// and adds the new ranking as a dependant to the source
-// rankings of the match slots
-func NewWinnerRanking(match *Match, rankingGraph *RankingGraph) *WinnerRanking {
+func NewWinnerRanking(match *Match) *WinnerRanking {
 	baseRanking := NewBaseRanking()
 	ranking := &WinnerRanking{Match: match, BaseRanking: baseRanking}
-	linkRankingGraph(match, ranking, rankingGraph)
 	return ranking
 }
 
-func linkRankingGraph(match *Match, ranking Ranking, rankingGraph *RankingGraph) {
-	rankingGraph.AddVertex(ranking)
+// Adds this WinnerRanking as a dependant to the source rankings of the match's slots
+// if they are both also WinnerRankings and the matches of those are keys in the allowedLinks
+func (r *WinnerRanking) LinkRankingGraph(rankingGraph *RankingGraph, allowedLinks map[*Match]*WinnerRanking) {
+	rankingGraph.AddVertex(r)
 
-	placement1 := match.Slot1.Placement()
-	placement2 := match.Slot2.Placement()
+	placement1 := r.Match.Slot1.Placement()
+	placement2 := r.Match.Slot2.Placement()
 
 	if placement1 == nil || placement2 == nil {
 		return
 	}
 
-	rankingGraph.AddEdge(placement1.Ranking(), ranking)
+	ranking1, ok1 := placement1.Ranking().(*WinnerRanking)
+	ranking2, ok2 := placement2.Ranking().(*WinnerRanking)
 
-	if placement1.Ranking() == placement2.Ranking() {
+	if !ok1 || !ok2 {
 		return
 	}
 
-	rankingGraph.AddEdge(placement2.Ranking(), ranking)
+	_, filter1 := allowedLinks[ranking1.Match]
+
+	if filter1 {
+		rankingGraph.AddEdge(ranking1, r)
+	}
+
+	if ranking1 == ranking2 {
+		return
+	}
+
+	_, filter2 := allowedLinks[ranking2.Match]
+
+	if filter2 {
+		rankingGraph.AddEdge(ranking2, r)
+	}
 }

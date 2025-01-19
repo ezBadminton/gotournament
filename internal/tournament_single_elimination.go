@@ -2,6 +2,14 @@ package internal
 
 import "slices"
 
+type EliminationSettings struct {
+	// Whether to interpret the entry ranks as seeded players.
+	// When false the entries are matched in order.
+	seeded bool
+
+	rankingGraph *RankingGraph
+}
+
 type EliminationMatchMaker struct {
 	EliminationGraph *EliminationGraph
 
@@ -20,7 +28,15 @@ type EliminationMatchMaker struct {
 // Can return an error when the ranking is empty or
 // invalid settings are passed.
 func (m *EliminationMatchMaker) MakeMatches(entries Ranking, settings interface{}) (*MatchList, *RankingGraph, Ranking, error) {
-	rankingGraph := NewRankingGraph(entries)
+	eliminationSettings := settings.(*EliminationSettings)
+	seeded := eliminationSettings.seeded
+
+	rankingGraph := eliminationSettings.rankingGraph
+	if rankingGraph == nil {
+		rankingGraph = NewRankingGraph(entries)
+	} else {
+		rankingGraph.AddVertex(entries)
+	}
 
 	m.WinnerRankings = make(map[*Match]*WinnerRanking)
 
@@ -35,7 +51,7 @@ func (m *EliminationMatchMaker) MakeMatches(entries Ranking, settings interface{
 	for i := range numRounds {
 		round := &Round{}
 		rounds = append(rounds, round)
-		if i == 0 {
+		if i == 0 && seeded {
 			round.Matches = CreateSeededMatches(entrySlots)
 		} else {
 			round.Matches = CreatePairedMatches(entrySlots)
@@ -62,7 +78,7 @@ func (m *EliminationMatchMaker) MakeMatches(entries Ranking, settings interface{
 	matchList := &MatchList{Matches: matches, Rounds: rounds}
 
 	finals := matches[len(matches)-1]
-	finalsRanking := m.WinnerRankings[finals]
+	finalsRanking := []Ranking{m.WinnerRankings[finals]}
 	finalRanking := NewEliminationRanking(matchList, entries, finalsRanking, rankingGraph)
 
 	return matchList, rankingGraph, finalRanking, nil
@@ -137,10 +153,9 @@ func arrangeSeeds(numRounds int) []*seedMatchup {
 func createWinnerSlots(matches []*Match, rankingGraph *RankingGraph, winnerRankings map[*Match]*WinnerRanking) []*Slot {
 	slots := make([]*Slot, 0, len(matches))
 	for _, m := range matches {
-		ranking := NewWinnerRanking(m, rankingGraph)
-		if winnerRankings != nil {
-			winnerRankings[m] = ranking
-		}
+		ranking := NewWinnerRanking(m)
+		ranking.LinkRankingGraph(rankingGraph, winnerRankings)
+		winnerRankings[m] = ranking
 		placement := NewPlacement(ranking, 0)
 		slot := NewPlacementSlot(placement)
 		slots = append(slots, slot)
@@ -251,7 +266,7 @@ func (e *EliminationEditingPolicy) isEditable(match *Match) bool {
 }
 
 type EliminationWithdrawalPolicy struct {
-	tournament       *SingleElimination
+	matchList        *MatchList
 	eliminationGraph *EliminationGraph
 }
 
@@ -259,7 +274,7 @@ type EliminationWithdrawalPolicy struct {
 // The specific matches that the player was withdrawn from
 // are returned.
 func (e *EliminationWithdrawalPolicy) WithdrawPlayer(player Player) []*Match {
-	playerMatches := e.tournament.MatchesOfPlayer(player)
+	playerMatches := e.matchList.MatchesOfPlayer(player)
 	var walkoverMatch *Match
 
 	for _, m := range playerMatches {
@@ -296,7 +311,7 @@ func (e *EliminationWithdrawalPolicy) WithdrawPlayer(player Player) []*Match {
 // On success the specific matches that the player
 // was reentered into are returned.
 func (e *EliminationWithdrawalPolicy) ReenterPlayer(player Player) []*Match {
-	matches := e.tournament.MatchList.Matches
+	matches := e.matchList.Matches
 	withdrawnMatches := make([]*Match, 0, 1)
 	for _, m := range matches {
 		if m.IsPlayerWithdrawn(player) {
@@ -321,35 +336,44 @@ type SingleElimination struct {
 	BaseTournament
 }
 
-func NewSingleElimination(entries Ranking) *SingleElimination {
+func createSingleElimination(entries Ranking, seeded bool, rankingGraph *RankingGraph) *SingleElimination {
+	settings := &EliminationSettings{seeded: seeded, rankingGraph: rankingGraph}
 	matchMaker := &EliminationMatchMaker{}
-	matchList, rankingGraph, finalRanking, _ := matchMaker.MakeMatches(entries, nil)
+	matchList, rankingGraph, finalRanking, _ := matchMaker.MakeMatches(entries, settings)
 	eliminationGraph := matchMaker.EliminationGraph
 
 	editingPolicy := &EliminationEditingPolicy{
 		matchList:        matchList,
 		eliminationGraph: eliminationGraph,
 	}
-	editingPolicy.Update()
 
-	tournament := BaseTournament{
-		Entries:       entries,
-		FinalRanking:  finalRanking,
-		MatchMaker:    matchMaker,
-		MatchList:     matchList,
-		RankingGraph:  rankingGraph,
-		EditingPolicy: editingPolicy,
+	withdrawalPolicy := &EliminationWithdrawalPolicy{
+		matchList:        matchList,
+		eliminationGraph: eliminationGraph,
 	}
+
+	tournament := NewBaseTournament(
+		entries,
+		finalRanking,
+		matchMaker,
+		matchList,
+		rankingGraph,
+		editingPolicy,
+		withdrawalPolicy,
+	)
 
 	singleElimination := &SingleElimination{
 		BaseTournament: tournament,
 	}
-
-	singleElimination.WithdrawalPolicy = &EliminationWithdrawalPolicy{
-		tournament:       singleElimination,
-		eliminationGraph: eliminationGraph,
-	}
 	singleElimination.Update(nil)
 
 	return singleElimination
+}
+
+func NewSingleElimination(entries Ranking) *SingleElimination {
+	return createSingleElimination(entries, true, nil)
+}
+
+func NewConsolationElimination(entries Ranking, rankingGraph *RankingGraph) *SingleElimination {
+	return createSingleElimination(entries, false, rankingGraph)
 }

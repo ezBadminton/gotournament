@@ -103,3 +103,18 @@ func NewEliminationGraph() *EliminationGraph {
 	eliminationGraph := EliminationGraph{DependencyGraph: graph}
 	return &eliminationGraph
 }
+
+// A ConsolationGraph has edges between the root winner bracket
+// and the consolation brackets where the losers go.
+// Nested consolations are also possible.
+type ConsolationGraph struct {
+	DependencyGraph[*SingleElimination]
+}
+
+func NewConsolationGraph() *ConsolationGraph {
+	graph := DependencyGraph[*SingleElimination]{
+		Graph: graph.New(getNodeId[*SingleElimination], graph.Directed()),
+	}
+	consolationGraph := ConsolationGraph{DependencyGraph: graph}
+	return &consolationGraph
+}

@@ -123,14 +123,14 @@ func (e *RoundRobinEditingPolicy) Update() {
 }
 
 type RoundRobinWithdrawalPolicy struct {
-	tournament *BaseTournament
+	matchList *MatchList
 }
 
 // Withdraws the given player from the tournament.
 // The specific matches that the player was withdrawn from
 // are returned.
 func (w *RoundRobinWithdrawalPolicy) WithdrawPlayer(player Player) []*Match {
-	matches := w.tournament.MatchesOfPlayer(player)
+	matches := w.matchList.MatchesOfPlayer(player)
 
 	allMatchesComplete := true
 	for _, m := range matches {
@@ -161,7 +161,7 @@ func (w *RoundRobinWithdrawalPolicy) WithdrawPlayer(player Player) []*Match {
 // was reentered into are returned.
 func (w *RoundRobinWithdrawalPolicy) ReenterPlayer(player Player) []*Match {
 	withdrawnMatches := make([]*Match, 0, 5)
-	for _, m := range w.tournament.MatchList.Matches {
+	for _, m := range w.matchList.Matches {
 		if slices.Contains(m.WithdrawnPlayers, player) {
 			withdrawnMatches = append(withdrawnMatches, m)
 		}
@@ -186,18 +186,17 @@ func NewRoundRobin(entries Ranking, passes int, walkoverScore Score) *RoundRobin
 	editingPolicy := &RoundRobinEditingPolicy{matches: matchList.Matches}
 	editingPolicy.Update()
 
-	tournament := BaseTournament{
-		Entries:       entries,
-		FinalRanking:  finalRanking,
-		MatchMaker:    matchMaker,
-		MatchList:     matchList,
-		RankingGraph:  rankingGraph,
-		EditingPolicy: editingPolicy,
-	}
+	withdrawalPolicy := &RoundRobinWithdrawalPolicy{matchList: matchList}
 
-	tournament.WithdrawalPolicy = &RoundRobinWithdrawalPolicy{
-		tournament: &tournament,
-	}
+	tournament := NewBaseTournament(
+		entries,
+		finalRanking,
+		matchMaker,
+		matchList,
+		rankingGraph,
+		editingPolicy,
+		withdrawalPolicy,
+	)
 
 	roundRobin := &RoundRobin{BaseTournament: tournament}
 	roundRobin.Update(nil)

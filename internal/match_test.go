@@ -20,7 +20,7 @@ func (s *TestScore) Points2() []int {
 
 func (s *TestScore) score(points int) []int {
 	score := make([]int, 0, s.numSets)
-	for _ = range s.numSets {
+	for range s.numSets {
 		score = append(score, points)
 	}
 	return score
