@@ -43,7 +43,7 @@ func TestRoundRobin(t *testing.T) {
 	tournament := NewRoundRobin(entries, 1, NewScore(21, 0))
 
 	ml := tournament.MatchList
-	finalRanking := tournament.FinalRanking.(*MatchMetricRanking)
+	finalRanking := tournament.FinalRanking
 
 	eq1 := len(ml.Matches) == 6
 	if !eq1 {
@@ -122,7 +122,7 @@ func TestRoundRobinByes(t *testing.T) {
 	tournament := NewRoundRobin(entries, 1, NewScore(21, 0))
 
 	ml := tournament.MatchList
-	finalRanking := tournament.FinalRanking.(*MatchMetricRanking)
+	finalRanking := tournament.FinalRanking
 
 	eq1 := len(ml.Matches) == 6
 	if !eq1 {
@@ -159,7 +159,7 @@ func TestRoundRobinWithdrawal(t *testing.T) {
 	entries := NewConstantRanking(players)
 	tournament := NewRoundRobin(entries, 1, NewScore(21, 0))
 
-	finalRanking := tournament.FinalRanking.(*MatchMetricRanking)
+	finalRanking := tournament.FinalRanking
 
 	wp := tournament.WithdrawalPolicy
 
@@ -256,7 +256,7 @@ func TestRoundRobinTies(t *testing.T) {
 
 	// 2-1 2-0 0-2
 	matches := tournament.MatchList.Matches
-	finalRanking := tournament.FinalRanking.(*MatchMetricRanking)
+	finalRanking := tournament.FinalRanking
 
 	for _, m := range []*Match{matches[1], matches[2], matches[4]} {
 		m.StartMatch()
@@ -285,7 +285,7 @@ func TestRoundRobinTies(t *testing.T) {
 
 	tournament = NewRoundRobin(entries, 2, NewScore(1, 0))
 	matches = tournament.MatchList.Matches
-	finalRanking = tournament.FinalRanking.(*MatchMetricRanking)
+	finalRanking = tournament.FinalRanking
 
 	// p1 and p2 win against p3 and p1 & p2
 	// each win one of their matches against each other
@@ -346,7 +346,7 @@ func TestRoundRobinTies(t *testing.T) {
 	entries = NewConstantRanking(players)
 	tournament = NewRoundRobin(entries, 2, NewScore(1, 0))
 	matches = tournament.MatchList.Matches
-	finalRanking = tournament.FinalRanking.(*MatchMetricRanking)
+	finalRanking = tournament.FinalRanking
 
 	p1 = players[0]
 	p2 = players[1]

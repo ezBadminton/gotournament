@@ -2,22 +2,19 @@ package internal
 
 import "slices"
 
-type RoundRobinSettings struct {
-	Passes        int
-	WalkoverScore Score
-	RankingGraph  *RankingGraph
-}
-
-type RoundRobinMatchMaker struct {
+type RoundRobin struct {
+	BaseTournament[*MatchMetricRanking]
 }
 
 // Creates the matches of a round robin tournament.
 // The RoundRobinSettings define a Passes int controlling
 // how often all matchups are played through.
-func (m *RoundRobinMatchMaker) MakeMatches(entries Ranking, settings interface{}) (*MatchList, *RankingGraph, Ranking, error) {
-	rrSettings := settings.(*RoundRobinSettings)
-
-	rankingGraph := rrSettings.RankingGraph
+func (t *RoundRobin) InitTournament(
+	entries Ranking,
+	passes int,
+	walkoverScore Score,
+	rankingGraph *RankingGraph,
+) {
 	if rankingGraph == nil {
 		rankingGraph = NewRankingGraph(entries)
 	} else {
@@ -27,21 +24,20 @@ func (m *RoundRobinMatchMaker) MakeMatches(entries Ranking, settings interface{}
 	evenEntries := NewEvenRanking(entries, rankingGraph)
 	entrySlots := evenEntries.GetRanks()
 
-	numPasses := rrSettings.Passes
-	if numPasses < 1 {
-		numPasses = 1
+	if passes < 1 {
+		passes = 1
 	}
 	numRounds := len(entrySlots) - 1
 	numMatches := len(entrySlots) / 2
 
-	rounds := make([]*Round, 0, numPasses*numRounds)
-	for passI := range numPasses {
+	rounds := make([]*Round, 0, passes*numRounds)
+	for passI := range passes {
 		for roundI := range numRounds {
 			round := createRound(entrySlots, passI, roundI)
 			rounds = append(rounds, round)
 		}
 	}
-	matches := make([]*Match, 0, numPasses*numRounds*numMatches)
+	matches := make([]*Match, 0, passes*numRounds*numMatches)
 	for _, r := range rounds {
 		matches = append(matches, r.Matches...)
 	}
@@ -51,11 +47,11 @@ func (m *RoundRobinMatchMaker) MakeMatches(entries Ranking, settings interface{}
 	finalRanking := NewRoundRobinRanking(
 		evenEntries,
 		matches,
-		rrSettings.WalkoverScore,
+		walkoverScore,
 		rankingGraph,
 	)
 
-	return matchList, rankingGraph, finalRanking, nil
+	t.addTournamentData(matchList, rankingGraph, finalRanking)
 }
 
 func createRound(entrySlots []*Slot, passI, roundI int) *Round {
@@ -186,35 +182,26 @@ func (w *RoundRobinWithdrawalPolicy) ReenterPlayer(player Player) []*Match {
 	return withdrawnMatches
 }
 
-type RoundRobin struct {
-	BaseTournament
-}
-
 func createRoundRobin(entries Ranking, passes int, walkoverScore Score, rankingGraph *RankingGraph) *RoundRobin {
-	settings := &RoundRobinSettings{
-		Passes:        passes,
-		WalkoverScore: walkoverScore,
-		RankingGraph:  rankingGraph,
+	roundRobin := &RoundRobin{
+		BaseTournament: NewBaseTournament[*MatchMetricRanking](entries),
 	}
-	matchMaker := &RoundRobinMatchMaker{}
-	matchList, rankingGraph, finalRanking, _ := matchMaker.MakeMatches(entries, settings)
+	roundRobin.InitTournament(
+		entries,
+		passes,
+		walkoverScore,
+		rankingGraph,
+	)
+
+	matchList := roundRobin.MatchList
 
 	editingPolicy := &RoundRobinEditingPolicy{matches: matchList.Matches}
 	editingPolicy.Update()
 
 	withdrawalPolicy := &RoundRobinWithdrawalPolicy{matchList: matchList}
 
-	tournament := NewBaseTournament(
-		entries,
-		finalRanking,
-		matchMaker,
-		matchList,
-		rankingGraph,
-		editingPolicy,
-		withdrawalPolicy,
-	)
+	roundRobin.addPolicies(editingPolicy, withdrawalPolicy)
 
-	roundRobin := &RoundRobin{BaseTournament: tournament}
 	roundRobin.Update(nil)
 
 	return roundRobin
@@ -226,7 +213,6 @@ func NewRoundRobin(entries Ranking, passes int, walkoverScore Score) *RoundRobin
 
 func NewGroupRoundRobin(entries Ranking, requiredUntiedRanks int, walkoverScore Score, rankingGraph *RankingGraph) *RoundRobin {
 	tournament := createRoundRobin(entries, 1, walkoverScore, rankingGraph)
-	finalRanking := tournament.FinalRanking.(*MatchMetricRanking)
-	finalRanking.RequiredUntiedRanks = requiredUntiedRanks
+	tournament.FinalRanking.RequiredUntiedRanks = requiredUntiedRanks
 	return tournament
 }

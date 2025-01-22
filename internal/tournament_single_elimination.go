@@ -2,45 +2,26 @@ package internal
 
 import "slices"
 
-type EliminationSettings struct {
-	// Whether to interpret the entry ranks as seeded players.
-	// When false the entries are matched in order.
-	seeded bool
-
-	rankingGraph *RankingGraph
-}
-
-type EliminationMatchMaker struct {
+type SingleElimination struct {
+	BaseTournament[*EliminationRanking]
 	EliminationGraph *EliminationGraph
-
-	WinnerRankings map[*Match]*WinnerRanking
+	WinnerRankings   map[*Match]*WinnerRanking
 }
 
-// Creates a MatchList and a Qualification Graph
-// The participating players are passed as a Ranking
-// of entries as well as some arbitrary tournament mode
-// specific settings.
-//
-// Given the same entries and settings, this method always
-// returns the same MatchList, RankingGraph and final Ranking.
-// Any RNG values are seeded by a value from the settings.
-//
-// Can return an error when the ranking is empty or
-// invalid settings are passed.
-func (m *EliminationMatchMaker) MakeMatches(entries Ranking, settings interface{}) (*MatchList, *RankingGraph, Ranking, error) {
-	eliminationSettings := settings.(*EliminationSettings)
-	seeded := eliminationSettings.seeded
-
-	rankingGraph := eliminationSettings.rankingGraph
+func (t *SingleElimination) InitTournament(
+	entries Ranking,
+	seeded bool,
+	rankingGraph *RankingGraph,
+) {
 	if rankingGraph == nil {
 		rankingGraph = NewRankingGraph(entries)
 	} else {
 		rankingGraph.AddVertex(entries)
 	}
 
-	m.WinnerRankings = make(map[*Match]*WinnerRanking)
+	t.WinnerRankings = make(map[*Match]*WinnerRanking)
 
-	m.EliminationGraph = NewEliminationGraph()
+	t.EliminationGraph = NewEliminationGraph()
 
 	balancedEntries := NewBalancedRanking(entries, rankingGraph)
 	entrySlots := balancedEntries.GetRanks()
@@ -57,7 +38,7 @@ func (m *EliminationMatchMaker) MakeMatches(entries Ranking, settings interface{
 			round.Matches = CreatePairedMatches(entrySlots)
 		}
 
-		entrySlots = createWinnerSlots(round.Matches, rankingGraph, m.WinnerRankings)
+		entrySlots = createWinnerSlots(round.Matches, rankingGraph, t.WinnerRankings)
 
 		if i == 0 {
 			for _, s := range entrySlots {
@@ -65,7 +46,7 @@ func (m *EliminationMatchMaker) MakeMatches(entries Ranking, settings interface{
 			}
 		} else {
 			lastRound := rounds[i-1]
-			linkMatches(lastRound.Matches, round.Matches, m.EliminationGraph)
+			linkMatches(lastRound.Matches, round.Matches, t.EliminationGraph)
 		}
 	}
 
@@ -78,10 +59,10 @@ func (m *EliminationMatchMaker) MakeMatches(entries Ranking, settings interface{
 	matchList := &MatchList{Matches: matches, Rounds: rounds}
 
 	finals := matches[len(matches)-1]
-	finalsRanking := []Ranking{m.WinnerRankings[finals]}
+	finalsRanking := []Ranking{t.WinnerRankings[finals]}
 	finalRanking := NewEliminationRanking(matchList, entries, finalsRanking, rankingGraph)
 
-	return matchList, rankingGraph, finalRanking, nil
+	t.addTournamentData(matchList, rankingGraph, finalRanking)
 }
 
 // Creates matches with the slots taken pair-wise from
@@ -332,15 +313,19 @@ func (e *EliminationWithdrawalPolicy) ReenterPlayer(player Player) []*Match {
 	return reenteredMatches
 }
 
-type SingleElimination struct {
-	BaseTournament
-}
-
 func createSingleElimination(entries Ranking, seeded bool, rankingGraph *RankingGraph) *SingleElimination {
-	settings := &EliminationSettings{seeded: seeded, rankingGraph: rankingGraph}
-	matchMaker := &EliminationMatchMaker{}
-	matchList, rankingGraph, finalRanking, _ := matchMaker.MakeMatches(entries, settings)
-	eliminationGraph := matchMaker.EliminationGraph
+	singleElimination := &SingleElimination{
+		BaseTournament: NewBaseTournament[*EliminationRanking](entries),
+	}
+
+	singleElimination.InitTournament(
+		entries,
+		seeded,
+		rankingGraph,
+	)
+
+	eliminationGraph := singleElimination.EliminationGraph
+	matchList := singleElimination.MatchList
 
 	editingPolicy := &EliminationEditingPolicy{
 		matchList:        matchList,
@@ -352,19 +337,8 @@ func createSingleElimination(entries Ranking, seeded bool, rankingGraph *Ranking
 		eliminationGraph: eliminationGraph,
 	}
 
-	tournament := NewBaseTournament(
-		entries,
-		finalRanking,
-		matchMaker,
-		matchList,
-		rankingGraph,
-		editingPolicy,
-		withdrawalPolicy,
-	)
+	singleElimination.addPolicies(editingPolicy, withdrawalPolicy)
 
-	singleElimination := &SingleElimination{
-		BaseTournament: tournament,
-	}
 	singleElimination.Update(nil)
 
 	return singleElimination

@@ -41,8 +41,7 @@ func TestConsolationBrackets(t *testing.T) {
 	entries := NewConstantRanking(players)
 	tournament := NewSingleEliminationWithConsolation(entries, 0, 16)
 
-	matchMaker := tournament.MatchMaker.(*SingleEliminationWithConsolationMatchMaker)
-	brackets := matchMaker.Brackets
+	brackets := tournament.Brackets
 
 	eq1 := len(brackets) == 8
 	if !eq1 {
@@ -63,8 +62,7 @@ func TestConsolationBrackets(t *testing.T) {
 	}
 
 	tournament = NewSingleEliminationWithConsolation(entries, 0, 15)
-	matchMaker = tournament.MatchMaker.(*SingleEliminationWithConsolationMatchMaker)
-	brackets = matchMaker.Brackets
+	brackets = tournament.Brackets
 
 	eq1 = len(brackets) == 8
 	if !eq1 {
@@ -72,8 +70,7 @@ func TestConsolationBrackets(t *testing.T) {
 	}
 
 	tournament = NewSingleEliminationWithConsolation(entries, 0, 14)
-	matchMaker = tournament.MatchMaker.(*SingleEliminationWithConsolationMatchMaker)
-	brackets = matchMaker.Brackets
+	brackets = tournament.Brackets
 
 	eq1 = len(brackets) == 7
 	if !eq1 {
@@ -85,8 +82,7 @@ func TestConsolationBrackets(t *testing.T) {
 	}
 
 	tournament = NewSingleEliminationWithConsolation(entries, 1, 0)
-	matchMaker = tournament.MatchMaker.(*SingleEliminationWithConsolationMatchMaker)
-	brackets = matchMaker.Brackets
+	brackets = tournament.Brackets
 
 	eq1 = len(brackets) == 4
 	if !eq1 {
@@ -94,8 +90,7 @@ func TestConsolationBrackets(t *testing.T) {
 	}
 
 	tournament = NewSingleEliminationWithConsolation(entries, 1, 8)
-	matchMaker = tournament.MatchMaker.(*SingleEliminationWithConsolationMatchMaker)
-	brackets = matchMaker.Brackets
+	brackets = tournament.Brackets
 
 	eq1 = len(brackets) == 5
 	if !eq1 {
@@ -109,8 +104,7 @@ func TestConsolationBrackets(t *testing.T) {
 
 	entries = NewConstantRanking(players)
 	tournament = NewSingleEliminationWithConsolation(entries, 0, 8)
-	matchMaker = tournament.MatchMaker.(*SingleEliminationWithConsolationMatchMaker)
-	brackets = matchMaker.Brackets
+	brackets = tournament.Brackets
 
 	eq1 = len(brackets) == 3
 	if !eq1 {
@@ -127,19 +121,16 @@ func TestConsolationGraphs(t *testing.T) {
 	entries := NewConstantRanking(players)
 	tournament := NewSingleEliminationWithConsolation(entries, 0, 16)
 
-	matchMaker := tournament.MatchMaker.(*SingleEliminationWithConsolationMatchMaker)
-	brackets := matchMaker.Brackets
+	brackets := tournament.Brackets
 	mainBracket := brackets[0]
 
 	rankingGraph := mainBracket.RankingGraph
-	mainBracketMatchMaker := mainBracket.MatchMaker.(*EliminationMatchMaker)
 
 	firstConsolation := mainBracket.Consolations[0]
-	firstConsolationMatchMaker := firstConsolation.MatchMaker.(*EliminationMatchMaker)
 	secondConsolation := firstConsolation.Consolations[0]
 
-	firstWinnerRanking := mainBracketMatchMaker.WinnerRankings[mainBracket.MatchList.Matches[0]]
-	firstConsolationWinnerRanking := firstConsolationMatchMaker.WinnerRankings[firstConsolation.MatchList.Matches[0]]
+	firstWinnerRanking := mainBracket.WinnerRankings[mainBracket.MatchList.Matches[0]]
+	firstConsolationWinnerRanking := firstConsolation.WinnerRankings[firstConsolation.MatchList.Matches[0]]
 
 	firstMatchDependants := rankingGraph.GetDependants(firstWinnerRanking)
 	firstConsolationDependants := rankingGraph.GetDependants(firstConsolationWinnerRanking)
@@ -151,7 +142,7 @@ func TestConsolationGraphs(t *testing.T) {
 		t.Fatal("The brackets are not properly connected in the ranking graph. The losers do not go to the entries ranking of the consolations.")
 	}
 
-	eliminationGraph := matchMaker.EliminationGraph
+	eliminationGraph := tournament.EliminationGraph
 
 	firstMatch := mainBracket.MatchList.Matches[0]
 	secondRoundMatch := mainBracket.MatchList.Rounds[1].Matches[0]
@@ -178,7 +169,7 @@ func TestConsolationRanking(t *testing.T) {
 	tournament := NewSingleEliminationWithConsolation(entries, 0, 4)
 
 	matchList := tournament.MatchList
-	finalRanking := tournament.FinalRanking.(*EliminationRanking)
+	finalRanking := tournament.FinalRanking
 
 	semi1 := matchList.Matches[0]
 	semi2 := matchList.Matches[1]
@@ -227,8 +218,7 @@ func TestConsolationWithdrawal(t *testing.T) {
 	tournament := NewSingleEliminationWithConsolation(entries, 0, 8)
 
 	ml := tournament.MatchList
-	matchMaker := tournament.MatchMaker.(*SingleEliminationWithConsolationMatchMaker)
-	brackets := matchMaker.Brackets
+	brackets := tournament.Brackets
 
 	semi1 := ml.Rounds[1].Matches[0]
 

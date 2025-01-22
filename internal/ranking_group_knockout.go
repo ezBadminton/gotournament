@@ -6,15 +6,15 @@ type GroupKnockoutRanking struct {
 	BaseTieableRanking
 
 	groupPhase *GroupPhase
-	knockOut   *BaseTournament
+	knockOut   *BaseTournament[*EliminationRanking]
 }
 
 func (r *GroupKnockoutRanking) UpdateRanks() {
-	groups := r.groupPhase.MatchMaker.(*GroupPhaseMatchMaker).Groups
+	groups := r.groupPhase.Groups
 
 	groupRanks := make([][][]*Slot, 0, len(groups))
 	for _, g := range groups {
-		ranking := g.FinalRanking.(*MatchMetricRanking)
+		ranking := g.FinalRanking
 		groupRanks = append(groupRanks, ranking.TiedRanks())
 	}
 	numRanks := 0
@@ -35,7 +35,7 @@ func (r *GroupKnockoutRanking) UpdateRanks() {
 		}
 	}
 
-	knockOutRanks := r.knockOut.FinalRanking.(TieableRanking).TiedRanks()
+	knockOutRanks := r.knockOut.FinalRanking.TiedRanks()
 
 	ranks := slices.Concat(combinedGroupRanks, knockOutRanks)
 	ranks = RemoveDoubleRanks(ranks)
@@ -43,7 +43,7 @@ func (r *GroupKnockoutRanking) UpdateRanks() {
 	r.ProcessUpdate(ranks)
 }
 
-func NewGroupKnockoutRanking(groupPhase *GroupPhase, knockOut *BaseTournament) *GroupKnockoutRanking {
+func NewGroupKnockoutRanking(groupPhase *GroupPhase, knockOut *BaseTournament[*EliminationRanking]) *GroupKnockoutRanking {
 	baseRanking := NewBaseTieableRanking(0)
 	ranking := &GroupKnockoutRanking{
 		BaseTieableRanking: baseRanking,

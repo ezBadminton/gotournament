@@ -2,46 +2,41 @@ package internal
 
 import "slices"
 
-type KnockoutBuilder func(entires Ranking) *BaseTournament
+type KnockoutBuilder func(entires Ranking) *BaseTournament[*EliminationRanking]
 
-type GroupKnockoutSettings struct {
-	GroupPhaseSettings
-
-	knockoutBuilder KnockoutBuilder
-}
-
-type GroupKnockoutMatchMaker struct {
+type GroupKnockout struct {
+	BaseTournament[*GroupKnockoutRanking]
 	groupPhase *GroupPhase
-	knockOut   *BaseTournament
+	knockOut   *BaseTournament[*EliminationRanking]
 }
 
-func (m *GroupKnockoutMatchMaker) MakeMatches(entries Ranking, settings interface{}) (*MatchList, *RankingGraph, Ranking, error) {
-	gkSettings := settings.(*GroupKnockoutSettings)
-	numQualifications := gkSettings.NumQualifications
-	numGroups := gkSettings.NumGroups
-	walkoverScore := gkSettings.WalkoverScore
-
+func (t *GroupKnockout) InitTournament(
+	entries Ranking,
+	knockoutBuilder KnockoutBuilder,
+	numGroups, numQualifications int,
+	walkoverScore Score,
+) {
 	rankingGraph := NewRankingGraph(entries)
 
-	m.groupPhase = NewGroupPhase(entries, numGroups, numQualifications, walkoverScore, rankingGraph)
+	t.groupPhase = NewGroupPhase(entries, numGroups, numQualifications, walkoverScore, rankingGraph)
 
-	groupPhaseRanking := m.groupPhase.FinalRanking.(*GroupPhaseRanking)
+	groupPhaseRanking := t.groupPhase.FinalRanking
 	qualificationRanking := NewGroupQualificationRanking(groupPhaseRanking, rankingGraph)
 
-	m.knockOut = gkSettings.knockoutBuilder(qualificationRanking)
+	t.knockOut = knockoutBuilder(qualificationRanking)
 
-	matchList := m.createMatchList()
+	matchList := t.createMatchList()
 
-	finalRanking := NewGroupKnockoutRanking(m.groupPhase, m.knockOut)
+	finalRanking := NewGroupKnockoutRanking(t.groupPhase, t.knockOut)
 	rankingGraph.AddVertex(finalRanking)
-	rankingGraph.AddEdge(m.knockOut.FinalRanking, finalRanking)
+	rankingGraph.AddEdge(t.knockOut.FinalRanking, finalRanking)
 
-	return matchList, rankingGraph, finalRanking, nil
+	t.addTournamentData(matchList, rankingGraph, finalRanking)
 }
 
-func (m *GroupKnockoutMatchMaker) createMatchList() *MatchList {
-	ml1 := m.groupPhase.MatchList
-	ml2 := m.knockOut.MatchList
+func (t *GroupKnockout) createMatchList() *MatchList {
+	ml1 := t.groupPhase.MatchList
+	ml2 := t.knockOut.MatchList
 
 	matches := slices.Concat(ml1.Matches, ml2.Matches)
 	rounds := slices.Concat(ml1.Rounds, ml2.Rounds)

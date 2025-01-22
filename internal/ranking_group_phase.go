@@ -20,7 +20,7 @@ func (r *GroupPhaseRanking) UpdateRanks() {
 
 	groupRankings := make([]*MatchMetricRanking, 0, numGroups)
 	for _, g := range r.groups {
-		groupRankings = append(groupRankings, g.FinalRanking.(*MatchMetricRanking))
+		groupRankings = append(groupRankings, g.FinalRanking)
 	}
 
 	contestedRank, numContested := r.contestedRank()

@@ -4,72 +4,66 @@ import (
 	"iter"
 )
 
-type GroupPhaseSettings struct {
-	NumGroups, NumQualifications int
-	WalkoverScore                Score
-	RankingGraph                 *RankingGraph
-}
-
-type GroupPhaseMatchMaker struct {
+type GroupPhase struct {
+	BaseTournament[*GroupPhaseRanking]
 	Groups []*RoundRobin
 }
 
-func (m *GroupPhaseMatchMaker) MakeMatches(entries Ranking, settings interface{}) (*MatchList, *RankingGraph, Ranking, error) {
-	groupPhaseSettings := settings.(*GroupPhaseSettings)
-	numGroups := groupPhaseSettings.NumGroups
-	numQualifications := groupPhaseSettings.NumQualifications
+func (t *GroupPhase) InitTournament(
+	entries Ranking,
+	numGroups, numQualifications int,
+	walkoverScore Score,
+	rankingGraph *RankingGraph,
+) {
 	qualsPerGroup := numQualifications / numGroups
 	if numQualifications%numGroups != 0 {
 		qualsPerGroup += 1
 	}
-	walkoverScore := groupPhaseSettings.WalkoverScore
-
-	rankingGraph := groupPhaseSettings.RankingGraph
 
 	entrySlots := entries.GetRanks()
 
 	slotGroups := groupSlots(entrySlots, numGroups)
-	m.Groups = make([]*RoundRobin, 0, len(slotGroups))
+	t.Groups = make([]*RoundRobin, 0, len(slotGroups))
 
 	for _, slots := range slotGroups {
 		groupEntries := NewSlotRanking(slots)
 		roundRobin := NewGroupRoundRobin(groupEntries, qualsPerGroup, walkoverScore, rankingGraph)
 		rankingGraph.AddEdge(entries, groupEntries)
-		m.Groups = append(m.Groups, roundRobin)
+		t.Groups = append(t.Groups, roundRobin)
 	}
 
-	matchList := m.createMatchList()
+	matchList := t.createMatchList()
 
 	crossGroupRanking := NewCrossGroupRanking(
 		entries,
 		matchList.Matches,
-		groupPhaseSettings.WalkoverScore,
+		walkoverScore,
 		numQualifications,
 	)
 
 	finalRanking := NewGroupPhaseRanking(
-		m.Groups,
+		t.Groups,
 		numQualifications,
 		crossGroupRanking,
 		rankingGraph,
 	)
 
-	for _, g := range m.Groups {
+	for _, g := range t.Groups {
 		rankingGraph.AddEdge(g.FinalRanking, crossGroupRanking)
 	}
 
-	return matchList, rankingGraph, finalRanking, nil
+	t.addTournamentData(matchList, rankingGraph, finalRanking)
 }
 
-func (m *GroupPhaseMatchMaker) createMatchList() *MatchList {
-	lastGroup := m.Groups[len(m.Groups)-1]
+func (t *GroupPhase) createMatchList() *MatchList {
+	lastGroup := t.Groups[len(t.Groups)-1]
 	maxNumRounds := len(lastGroup.MatchList.Rounds)
 	maxNumMatches := len(lastGroup.MatchList.Matches)
 
 	rounds := make([]*Round, 0, maxNumRounds)
-	matches := make([]*Match, 0, len(m.Groups)*maxNumMatches)
+	matches := make([]*Match, 0, len(t.Groups)*maxNumMatches)
 	for i := range maxNumRounds {
-		groupRounds := collectRounds(i, m.Groups)
+		groupRounds := collectRounds(i, t.Groups)
 		roundMatches := intertwineRounds(groupRounds)
 		matches = append(matches, roundMatches...)
 		round := &Round{Matches: roundMatches, NestedRounds: groupRounds}
@@ -158,25 +152,24 @@ func directionalSeq[V any](slice []V, direction bool) iter.Seq2[int, V] {
 	return iterator
 }
 
-type GroupPhase struct {
-	BaseTournament
-}
-
 func NewGroupPhase(
 	entries Ranking,
 	numGroups, numQualifications int,
 	walkoverScore Score,
 	rankingGraph *RankingGraph,
 ) *GroupPhase {
-	settings := &GroupPhaseSettings{
-		NumGroups:         numGroups,
-		NumQualifications: numQualifications,
-		WalkoverScore:     walkoverScore,
-		RankingGraph:      rankingGraph,
+	groupPhase := &GroupPhase{
+		BaseTournament: NewBaseTournament[*GroupPhaseRanking](entries),
 	}
+	groupPhase.InitTournament(
+		entries,
+		numGroups,
+		numQualifications,
+		walkoverScore,
+		rankingGraph,
+	)
 
-	matchMaker := &GroupPhaseMatchMaker{}
-	matchList, rankingGraph, finalRanking, _ := matchMaker.MakeMatches(entries, settings)
+	matchList := groupPhase.MatchList
 
 	editingPolicy := &RoundRobinEditingPolicy{
 		matches: matchList.Matches,
@@ -186,17 +179,8 @@ func NewGroupPhase(
 		matchList: matchList,
 	}
 
-	tournament := NewBaseTournament(
-		entries,
-		finalRanking,
-		matchMaker,
-		matchList,
-		rankingGraph,
-		editingPolicy,
-		withdrawalPolicy,
-	)
+	groupPhase.addPolicies(editingPolicy, withdrawalPolicy)
 
-	groupPhase := &GroupPhase{BaseTournament: tournament}
 	groupPhase.Update(nil)
 
 	return groupPhase

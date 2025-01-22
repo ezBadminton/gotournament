@@ -32,24 +32,6 @@ func (l *MatchList) MatchesComplete() bool {
 	return true
 }
 
-// A MatchMaker initializes a Tournament by defining the matches
-// that are to be played.
-type MatchMaker interface {
-	// Creates a MatchList, a Ranking Graph and the final ranking
-	//
-	// The participating players are passed as a Ranking
-	// of entries as well as some arbitrary tournament mode
-	// specific settings.
-	//
-	// Given the same entries and settings, this method always
-	// returns the same slice of rounds. Any RNG values are
-	// seeded by a value from the settings.
-	//
-	// Can return an error when the ranking is empty or
-	// invalid settings are passed.
-	MakeMatches(entries Ranking, settings interface{}) (*MatchList, *RankingGraph, Ranking, error)
-}
-
 // The WithdrawalPolicy dictates how a player can
 // withdraw from a tournament and also if a player
 // would be allowed to reenter.
@@ -85,26 +67,21 @@ type Tournament interface {
 	GetMatchList() *MatchList
 }
 
-type BaseTournament struct {
+type BaseTournament[FinalRanking Ranking] struct {
 	// The entries ranking which contains
 	// the starting slots for all participants.
 	Entries Ranking
-	// The final ranking is the overall result
-	// of the entire tournament.
-	// It should contain a slot for every player
-	// who is in the Entries.
-	FinalRanking Ranking
+	*MatchList
+	*RankingGraph
+	FinalRanking FinalRanking
 
-	MatchMaker       MatchMaker
-	RankingGraph     *RankingGraph
-	MatchList        *MatchList
-	WithdrawalPolicy WithdrawalPolicy
-	EditingPolicy    EditingPolicy
+	WithdrawalPolicy
+	EditingPolicy
 
 	id int
 }
 
-func (t *BaseTournament) Update(start Ranking) {
+func (t *BaseTournament[_]) Update(start Ranking) {
 	if start == nil {
 		start = t.Entries
 	}
@@ -120,31 +97,36 @@ func (t *BaseTournament) Update(start Ranking) {
 	t.EditingPolicy.Update()
 }
 
-func (t *BaseTournament) GetMatchList() *MatchList {
+func (t *BaseTournament[_]) GetMatchList() *MatchList {
 	return t.MatchList
 }
 
-func (t *BaseTournament) Id() int {
+func (t *BaseTournament[_]) Id() int {
 	return t.id
 }
 
-func NewBaseTournament(
-	entries, finalRanking Ranking,
-	matchMaker MatchMaker,
+func (t *BaseTournament[FinalRanking]) addTournamentData(
 	matchList *MatchList,
 	rankingGraph *RankingGraph,
+	finalRanking FinalRanking,
+) {
+	t.MatchList = matchList
+	t.RankingGraph = rankingGraph
+	t.FinalRanking = finalRanking
+}
+
+func (t *BaseTournament[_]) addPolicies(
 	editingPolicy EditingPolicy,
 	withdrawalPolicy WithdrawalPolicy,
-) BaseTournament {
-	tournament := BaseTournament{
-		Entries:          entries,
-		FinalRanking:     finalRanking,
-		MatchMaker:       matchMaker,
-		MatchList:        matchList,
-		RankingGraph:     rankingGraph,
-		EditingPolicy:    editingPolicy,
-		WithdrawalPolicy: withdrawalPolicy,
-		id:               NextNodeId(),
+) {
+	t.EditingPolicy = editingPolicy
+	t.WithdrawalPolicy = withdrawalPolicy
+}
+
+func NewBaseTournament[FinalRanking Ranking](entries Ranking) BaseTournament[FinalRanking] {
+	tournament := BaseTournament[FinalRanking]{
+		Entries: entries,
+		id:      NextNodeId(),
 	}
 	return tournament
 }

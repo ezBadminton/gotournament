@@ -15,8 +15,7 @@ func TestGroupSeeding(t *testing.T) {
 	rankingGraph := NewRankingGraph(entries)
 	tournament := NewGroupPhase(entries, 4, 3, NewScore(21, 0), rankingGraph)
 
-	matchMaker := tournament.MatchMaker.(*GroupPhaseMatchMaker)
-	groups := matchMaker.Groups
+	groups := tournament.Groups
 
 	groupSlots := make([][]*Slot, 0, 4)
 	for _, g := range groups {
@@ -56,8 +55,7 @@ func TestGroupSeeding(t *testing.T) {
 	rankingGraph = NewRankingGraph(entries)
 	tournament = NewGroupPhase(entries, 4, 4, NewScore(21, 0), rankingGraph)
 
-	matchMaker = tournament.MatchMaker.(*GroupPhaseMatchMaker)
-	groups = matchMaker.Groups
+	groups = tournament.Groups
 
 	groupSlots = make([][]*Slot, 0, 4)
 	for _, g := range groups {
@@ -89,7 +87,7 @@ func TestGroupPhaseRanking(t *testing.T) {
 	rankingGraph := NewRankingGraph(entries)
 	tournament := NewGroupPhase(entries, 3, 6, NewScore(1, 0), rankingGraph)
 
-	finalRanking := tournament.FinalRanking.(*GroupPhaseRanking)
+	finalRanking := tournament.FinalRanking
 
 	ranks := finalRanking.TiedRanks()
 
@@ -172,7 +170,7 @@ func TestCrossGroupTies(t *testing.T) {
 	tournament := NewGroupPhase(entries, 3, 5, NewScore(1, 0), rankingGraph)
 
 	ml := tournament.MatchList
-	finalRanking := tournament.FinalRanking.(*GroupPhaseRanking)
+	finalRanking := tournament.FinalRanking
 
 	for _, m := range ml.Matches {
 		m.StartMatch()
@@ -239,12 +237,11 @@ func TestGroupPhaseWithdrawal(t *testing.T) {
 	tournament := NewGroupPhase(entries, 2, 6, walkoverScore, rankingGraph)
 
 	wp := tournament.WithdrawalPolicy
-	matchMaker := tournament.MatchMaker.(*GroupPhaseMatchMaker)
 	groupRankings := make([]*MatchMetricRanking, 0, 2)
-	for _, g := range matchMaker.Groups {
-		groupRankings = append(groupRankings, g.FinalRanking.(*MatchMetricRanking))
+	for _, g := range tournament.Groups {
+		groupRankings = append(groupRankings, g.FinalRanking)
 	}
-	finalRanking := tournament.FinalRanking.(*GroupPhaseRanking)
+	finalRanking := tournament.FinalRanking
 	ml := tournament.MatchList
 
 	matches := ml.Matches

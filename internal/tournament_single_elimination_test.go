@@ -15,7 +15,7 @@ func TestSmallTournament(t *testing.T) {
 
 	entries := NewConstantRanking(players)
 	tournament := NewSingleElimination(entries)
-	winnerRankings := tournament.MatchMaker.(*EliminationMatchMaker).WinnerRankings
+	winnerRankings := tournament.WinnerRankings
 
 	semi1 := tournament.MatchList.Matches[0]
 	semi2 := tournament.MatchList.Matches[1]
@@ -31,7 +31,7 @@ func TestSmallTournament(t *testing.T) {
 		t.Fatal("The players were assigned the wrong slots according to their seeds.")
 	}
 
-	finalRanking := tournament.FinalRanking.(TieableRanking)
+	finalRanking := tournament.FinalRanking
 	finalRanking.UpdateRanks()
 	if len(finalRanking.TiedRanks()) != 1 {
 		t.Fatal("The final ranking does not have one tied rank for all players")
