@@ -5,6 +5,7 @@ import "slices"
 type RoundRobinSettings struct {
 	Passes        int
 	WalkoverScore Score
+	RankingGraph  *RankingGraph
 }
 
 type RoundRobinMatchMaker struct {
@@ -14,12 +15,18 @@ type RoundRobinMatchMaker struct {
 // The RoundRobinSettings define a Passes int controlling
 // how often all matchups are played through.
 func (m *RoundRobinMatchMaker) MakeMatches(entries Ranking, settings interface{}) (*MatchList, *RankingGraph, Ranking, error) {
-	rankingGraph := NewRankingGraph(entries)
+	rrSettings := settings.(*RoundRobinSettings)
+
+	rankingGraph := rrSettings.RankingGraph
+	if rankingGraph == nil {
+		rankingGraph = NewRankingGraph(entries)
+	} else {
+		rankingGraph.AddVertex(entries)
+	}
 
 	evenEntries := NewEvenRanking(entries, rankingGraph)
 	entrySlots := evenEntries.GetRanks()
 
-	rrSettings := settings.(*RoundRobinSettings)
 	numPasses := rrSettings.Passes
 	if numPasses < 1 {
 		numPasses = 1
@@ -41,7 +48,12 @@ func (m *RoundRobinMatchMaker) MakeMatches(entries Ranking, settings interface{}
 
 	matchList := &MatchList{Rounds: rounds, Matches: matches}
 
-	finalRanking := NewMatchMetricRanking(evenEntries, matches, rankingGraph, rrSettings.WalkoverScore)
+	finalRanking := NewRoundRobinRanking(
+		evenEntries,
+		matches,
+		rrSettings.WalkoverScore,
+		rankingGraph,
+	)
 
 	return matchList, rankingGraph, finalRanking, nil
 }
@@ -178,8 +190,12 @@ type RoundRobin struct {
 	BaseTournament
 }
 
-func NewRoundRobin(entries Ranking, passes int, walkoverScore Score) *RoundRobin {
-	settings := &RoundRobinSettings{Passes: passes, WalkoverScore: walkoverScore}
+func createRoundRobin(entries Ranking, passes int, walkoverScore Score, rankingGraph *RankingGraph) *RoundRobin {
+	settings := &RoundRobinSettings{
+		Passes:        passes,
+		WalkoverScore: walkoverScore,
+		RankingGraph:  rankingGraph,
+	}
 	matchMaker := &RoundRobinMatchMaker{}
 	matchList, rankingGraph, finalRanking, _ := matchMaker.MakeMatches(entries, settings)
 
@@ -202,4 +218,15 @@ func NewRoundRobin(entries Ranking, passes int, walkoverScore Score) *RoundRobin
 	roundRobin.Update(nil)
 
 	return roundRobin
+}
+
+func NewRoundRobin(entries Ranking, passes int, walkoverScore Score) *RoundRobin {
+	return createRoundRobin(entries, passes, walkoverScore, nil)
+}
+
+func NewGroupRoundRobin(entries Ranking, requiredUntiedRanks int, walkoverScore Score, rankingGraph *RankingGraph) *RoundRobin {
+	tournament := createRoundRobin(entries, 1, walkoverScore, rankingGraph)
+	finalRanking := tournament.FinalRanking.(*MatchMetricRanking)
+	finalRanking.RequiredUntiedRanks = requiredUntiedRanks
+	return tournament
 }

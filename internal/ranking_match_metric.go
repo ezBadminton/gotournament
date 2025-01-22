@@ -15,8 +15,9 @@ type MatchMetricRanking struct {
 	// The metrics are updated in the UpdateRanks call
 	Metrics map[Player]*MatchMetrics
 
-	players []Player
-	matches []*Match
+	entrySlots []*Slot
+	players    []Player
+	matches    []*Match
 
 	walkoverScore Score
 }
@@ -39,42 +40,13 @@ func (r *MatchMetricRanking) UpdateRanks() {
 	for _, tie := range tieBroken {
 		tiedSlots := make([]*Slot, 0, len(tie))
 		for _, p := range tie {
-			tiedSlots = append(tiedSlots, NewPlayerSlot(p))
+			i := slices.Index(r.players, p)
+			tiedSlots = append(tiedSlots, r.entrySlots[i])
 		}
 		ranks = append(ranks, tiedSlots)
 	}
 
 	r.ProcessUpdate(ranks)
-}
-
-func NewMatchMetricRanking(
-	entries Ranking,
-	matches []*Match,
-	rankingGraph *RankingGraph,
-	walkoverScore Score,
-) *MatchMetricRanking {
-	entrySlots := entries.GetRanks()
-	players := make([]Player, 0, len(entrySlots))
-
-	for _, s := range entrySlots {
-		player := s.Player()
-		if player != nil {
-			players = append(players, player)
-		}
-	}
-
-	ranking := &MatchMetricRanking{
-		BaseTieableRanking: NewBaseTieableRanking(0),
-		players:            players,
-		matches:            matches,
-		walkoverScore:      walkoverScore,
-	}
-	ranking.UpdateRanks()
-
-	rankingGraph.AddVertex(ranking)
-	rankingGraph.AddEdge(entries, ranking)
-
-	return ranking
 }
 
 // Attempts to break the tie between players with the same amount of wins.
@@ -117,7 +89,7 @@ func (r *MatchMetricRanking) breakTie(tie []Player) [][]Player {
 	subTieBroken := make([][]Player, 0, 5)
 	for _, subTie := range sortedByPoints {
 		if len(subTie) == 2 {
-			broken := r.breakTwoWayTie(tie[0], tie[1])
+			broken := r.breakTwoWayTie(subTie[0], subTie[1])
 			subTieBroken = append(subTieBroken, broken...)
 		} else {
 			subTieBroken = append(subTieBroken, subTie)
@@ -197,4 +169,68 @@ func sortByMetric(players []Player, metrics map[Player]*MatchMetrics, getter fun
 	}
 
 	return sortedPlayers
+}
+
+func createMatchMetricRanking(
+	entries Ranking,
+	matches []*Match,
+	walkoverScore Score,
+	requiredUntiedRanks int,
+	rankingGraph *RankingGraph,
+) *MatchMetricRanking {
+	entrySlots := entries.GetRanks()
+	players := make([]Player, 0, len(entrySlots))
+
+	for _, s := range entrySlots {
+		player := s.Player()
+		if player != nil {
+			players = append(players, player)
+		}
+	}
+
+	ranking := &MatchMetricRanking{
+		BaseTieableRanking: NewBaseTieableRanking(requiredUntiedRanks),
+		entrySlots:         entrySlots,
+		players:            players,
+		matches:            matches,
+		walkoverScore:      walkoverScore,
+	}
+	ranking.UpdateRanks()
+
+	if rankingGraph != nil {
+		rankingGraph.AddVertex(ranking)
+		rankingGraph.AddEdge(entries, ranking)
+	}
+
+	return ranking
+}
+
+func NewRoundRobinRanking(
+	entries Ranking,
+	matches []*Match,
+	walkoverScore Score,
+	rankingGraph *RankingGraph,
+) *MatchMetricRanking {
+	return createMatchMetricRanking(
+		entries,
+		matches,
+		walkoverScore,
+		0,
+		rankingGraph,
+	)
+}
+
+func NewCrossGroupRanking(
+	entries Ranking,
+	matches []*Match,
+	walkoverScore Score,
+	numQualifications int,
+) *MatchMetricRanking {
+	return createMatchMetricRanking(
+		entries,
+		matches,
+		walkoverScore,
+		numQualifications,
+		nil,
+	)
 }

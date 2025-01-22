@@ -22,6 +22,16 @@ func (l *MatchList) MatchesOfPlayer(player Player) []*Match {
 	return matches
 }
 
+// Returns true when all matches in the list are complete
+func (l *MatchList) MatchesComplete() bool {
+	for _, m := range l.Matches {
+		if !m.HasBye() && !m.IsWalkover() && m.Score == nil {
+			return false
+		}
+	}
+	return true
+}
+
 // A MatchMaker initializes a Tournament by defining the matches
 // that are to be played.
 type MatchMaker interface {

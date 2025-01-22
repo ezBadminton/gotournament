@@ -7,6 +7,7 @@ type MatchMetrics struct {
 	NumSets, SetWins, SetLosses    int
 	PointWins, PointLosses         int
 	SetDifference, PointDifference int
+	Withdrawn                      bool
 }
 
 func (m *MatchMetrics) UpdateDifferences() {
@@ -86,8 +87,10 @@ func extractMatchMetrics(
 	if score == nil {
 		if winnerSlot == match.Slot1 {
 			score = walkoverScore
+			m2.Withdrawn = true
 		} else if winnerSlot == match.Slot2 {
 			score = walkoverScore.Invert()
+			m1.Withdrawn = true
 		}
 	}
 
