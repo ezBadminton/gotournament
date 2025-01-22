@@ -25,7 +25,6 @@ func (m *GroupPhaseMatchMaker) MakeMatches(entries Ranking, settings interface{}
 	walkoverScore := groupPhaseSettings.WalkoverScore
 
 	rankingGraph := groupPhaseSettings.RankingGraph
-	rankingGraph.AddVertex(entries)
 
 	entrySlots := entries.GetRanks()
 
@@ -198,6 +197,7 @@ func NewGroupPhase(
 	)
 
 	groupPhase := &GroupPhase{BaseTournament: tournament}
+	groupPhase.Update(nil)
 
 	return groupPhase
 }

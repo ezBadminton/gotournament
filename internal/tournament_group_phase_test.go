@@ -1,7 +1,6 @@
 package internal
 
 import (
-	"fmt"
 	"reflect"
 	"testing"
 )
@@ -94,9 +93,10 @@ func TestGroupPhaseRanking(t *testing.T) {
 
 	ranks := finalRanking.TiedRanks()
 
-	eq1 := len(ranks) == 0
-	if !eq1 {
-		t.Fatal("The final ranking is populated despite the group phase not being finished")
+	eq1 := len(ranks) == len(players)
+	eq2 := !finalRanking.QualificationComplete
+	if !eq1 || !eq2 {
+		t.Fatal("The final ranking is marked as complete despite the matches not having started")
 	}
 
 	for _, m := range tournament.MatchList.Matches {
@@ -110,8 +110,9 @@ func TestGroupPhaseRanking(t *testing.T) {
 	ranks = finalRanking.TiedRanks()
 
 	eq1 = len(ranks) == len(players)
-	if !eq1 {
-		t.Fatal("The final ranking is not populated despite all matches being finished")
+	eq2 = !finalRanking.QualificationComplete
+	if !eq1 || !eq2 {
+		t.Fatal("The final ranking is marked as complete despite ties being present")
 	}
 
 	eq1 = len(finalRanking.GroupTies) == 3
@@ -120,7 +121,7 @@ func TestGroupPhaseRanking(t *testing.T) {
 	}
 
 	eq1 = len(finalRanking.CrossGroupTies()) == 0
-	eq2 := finalRanking.RequiredUntiedRanks == 6
+	eq2 = finalRanking.RequiredUntiedRanks == 6
 	if !eq1 || !eq2 {
 		t.Fatal("The cross group ties are not empty")
 	}
@@ -132,14 +133,15 @@ func TestGroupPhaseRanking(t *testing.T) {
 
 	eq1 = len(finalRanking.GroupTies) == 0
 	eq2 = len(finalRanking.CrossGroupTies()) == 0
-	if !eq1 || !eq2 {
+	eq3 := finalRanking.QualificationComplete
+	if !eq1 || !eq2 || !eq3 {
 		t.Fatal("The final ranking is not free of ties despite the different player scores")
 	}
 
 	ranks = finalRanking.TiedRanks()
 	eq1 = ranks[0][0].Player() == players[0]
 	eq2 = ranks[1][0].Player() == players[1]
-	eq3 := ranks[2][0].Player() == players[2]
+	eq3 = ranks[2][0].Player() == players[2]
 	if !eq1 || !eq2 || !eq3 {
 		t.Fatal("The group winners do not occupy the top 3 final ranks")
 	}
@@ -247,9 +249,6 @@ func TestGroupPhaseWithdrawal(t *testing.T) {
 
 	matches := ml.Matches
 	matches = []*Match{matches[2], matches[3], matches[5], matches[9]}
-	for _, m := range matches {
-		fmt.Println(m)
-	}
 
 	withdrawnMatches := wp.WithdrawPlayer(players[0])
 

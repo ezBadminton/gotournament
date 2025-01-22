@@ -9,16 +9,13 @@ type GroupPhaseRanking struct {
 	crossGroupRanking TieableRanking
 
 	GroupTies map[int][][]*Slot
+
+	// Is true when all group matches are finished
+	// and all blocking ties are broken
+	QualificationComplete bool
 }
 
 func (r *GroupPhaseRanking) UpdateRanks() {
-	for _, g := range r.groups {
-		if !g.MatchList.MatchesComplete() {
-			r.ProcessUpdate([][]*Slot{})
-			return
-		}
-	}
-
 	numGroups := len(r.groups)
 
 	groupRankings := make([]*MatchMetricRanking, 0, numGroups)
@@ -43,6 +40,21 @@ func (r *GroupPhaseRanking) UpdateRanks() {
 	}
 
 	r.ProcessUpdate(ranks)
+
+	groupsFinished := true
+	for _, g := range r.groups {
+		if !g.MatchList.MatchesComplete() {
+			groupsFinished = false
+			break
+		}
+	}
+
+	if !groupsFinished {
+		r.QualificationComplete = false
+	} else {
+		crossGroupTiesPresent := len(r.CrossGroupTies()) > 0
+		r.QualificationComplete = !tiesPresent && !crossGroupTiesPresent
+	}
 }
 
 // The cross group ties are populated when there is a
