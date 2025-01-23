@@ -17,22 +17,19 @@ func (r *GroupKnockoutRanking) UpdateRanks() {
 		ranking := g.FinalRanking
 		groupRanks = append(groupRanks, ranking.TiedRanks())
 	}
-	numRanks := 0
-	for _, ranks := range groupRanks {
-		numRanks += len(ranks)
-	}
 
-	combinedGroupRanks := make([][]*Slot, numRanks)
+	combinedGroupRanks := make([][]*Slot, 8)
 	rankFound := true
 	for i := 0; rankFound; i += 1 {
-		rankFound = false
+		combinedGroupRank := make([]*Slot, 0, len(groups))
 		for _, ranks := range groupRanks {
 			if i >= len(ranks) {
 				continue
 			}
-			rankFound = true
-			combinedGroupRanks = append(combinedGroupRanks, ranks[i])
+			combinedGroupRank = append(combinedGroupRank, ranks[i]...)
 		}
+		rankFound = len(combinedGroupRank) > 0
+		combinedGroupRanks = append(combinedGroupRanks, combinedGroupRank)
 	}
 
 	knockOutRanks := r.knockOut.FinalRanking.TiedRanks()

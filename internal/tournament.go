@@ -32,6 +32,16 @@ func (l *MatchList) MatchesComplete() bool {
 	return true
 }
 
+// Returns true when any of the matches have started
+func (l *MatchList) MatchesStarted() bool {
+	for _, m := range l.Matches {
+		if !m.StartTime.IsZero() {
+			return true
+		}
+	}
+	return false
+}
+
 // The WithdrawalPolicy dictates how a player can
 // withdraw from a tournament and also if a player
 // would be allowed to reenter.
@@ -52,7 +62,7 @@ type EditingPolicy interface {
 	EditableMatches() []*Match
 
 	// Updates the return value of EditableMatches
-	Update()
+	UpdateEditableMatches()
 }
 
 // A Tournament is a chain of matches and rankings.
@@ -94,7 +104,7 @@ func (t *BaseTournament[_]) Update(start Ranking) {
 		}
 	}
 
-	t.EditingPolicy.Update()
+	t.EditingPolicy.UpdateEditableMatches()
 }
 
 func (t *BaseTournament[_]) GetMatchList() *MatchList {

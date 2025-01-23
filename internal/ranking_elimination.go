@@ -43,7 +43,15 @@ func (r *EliminationRanking) UpdateRanks() {
 		}
 	}
 
-	ranks = append(ranks, r.Entries.GetRanks())
+	entrySlots := r.Entries.GetRanks()
+	occupiedEntrySlots := make([]*Slot, 0, len(entrySlots))
+	for _, s := range entrySlots {
+		if s.Player() != nil {
+			occupiedEntrySlots = append(occupiedEntrySlots, s)
+		}
+	}
+
+	ranks = append(ranks, occupiedEntrySlots)
 
 	ranks = RemoveDoubleRanks(ranks)
 

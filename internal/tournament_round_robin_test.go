@@ -232,7 +232,7 @@ func TestRoundRobinEditing(t *testing.T) {
 	ml.Matches[1].StartMatch()
 	ml.Matches[1].EndMatch(NewScore(1, 0))
 
-	ep.Update()
+	ep.UpdateEditableMatches()
 	editableMatches = ep.EditableMatches()
 
 	eq1 = len(editableMatches) == 1 && editableMatches[0] == ml.Matches[1]

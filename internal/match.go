@@ -2,6 +2,7 @@ package internal
 
 import (
 	"errors"
+	"fmt"
 	"iter"
 	"strings"
 	"time"
@@ -207,6 +208,15 @@ func (m *Match) String() string {
 		sb.WriteString("[Empty]")
 	} else {
 		sb.WriteString(p2.Id())
+	}
+
+	if m.Score != nil {
+		p1, p2 := m.Score.Points1(), m.Score.Points2()
+		sb.WriteRune('\t')
+		for i := range len(p1) {
+			setString := fmt.Sprintf("%v - %v ", p1[i], p2[i])
+			sb.WriteString(setString)
+		}
 	}
 
 	return sb.String()

@@ -8,17 +8,16 @@ import (
 type GroupQualificationRanking struct {
 	BaseRanking
 
-	source *GroupPhaseRanking
+	source     *GroupPhaseRanking
+	placements []*BlockingPlacement
 }
 
 func (r *GroupQualificationRanking) UpdateRanks() {
 	seeds := r.arrangeKnockOutSeeds()
 
-	r.Ranks = make([]*Slot, 0, len(seeds))
-	for _, seed := range seeds {
-		placement := NewBlockingPlacement(r.source, seed, !r.source.QualificationComplete)
-		slot := NewPlacementSlot(placement)
-		r.Ranks = append(r.Ranks, slot)
+	for i, placement := range r.placements {
+		placement.blocking = !r.source.QualificationComplete
+		placement.place = seeds[i]
 	}
 }
 
@@ -30,7 +29,7 @@ func (r *GroupQualificationRanking) arrangeKnockOutSeeds() []int {
 
 	numFirstRoundSlots := len(qualifications) - preRoundSize*2
 	firstQuals := qualifications[:numFirstRoundSlots]
-	preQuals := qualifications[numFirstRoundSlots:]
+	preQuals := slices.Clone(qualifications[numFirstRoundSlots:])
 
 	preMatchups := make([]*qualificationMatchup, 0, firstRoundSize)
 
@@ -154,6 +153,7 @@ func getLowestQualification(qualifications []*groupQualification, groupConstrain
 		if q != nil && q.group != groupConstraint {
 			lowest = q
 			qualifications[i] = nil
+			break
 		}
 	}
 	return lowest
@@ -165,6 +165,7 @@ func getLowestMatchup(pool []*qualificationMatchup, groupConstraint *qualificati
 		if m != nil && !overlappingGroups(m, groupConstraint) {
 			lowest = m
 			pool[i] = nil
+			break
 		}
 	}
 	return lowest
@@ -249,11 +250,24 @@ func previousPowerOfTwo(from int) int {
 }
 
 func NewGroupQualificationRanking(source *GroupPhaseRanking, rankingGraph *RankingGraph) *GroupQualificationRanking {
-	baseRanking := NewBaseRanking()
-	ranking := &GroupQualificationRanking{
-		BaseRanking: baseRanking,
-		source:      source,
+	numQualifcations := source.RequiredUntiedRanks
+
+	placements := make([]*BlockingPlacement, 0, numQualifcations)
+	slots := make([]*Slot, 0, numQualifcations)
+	for range numQualifcations {
+		placements = append(placements, NewBlockingPlacement(source, 0, true))
 	}
+	for _, p := range placements {
+		slots = append(slots, NewPlacementSlot(p))
+	}
+
+	baseRanking := NewSlotRanking(slots)
+	ranking := &GroupQualificationRanking{
+		BaseRanking: *baseRanking,
+		source:      source,
+		placements:  placements,
+	}
+	ranking.AddDependantSlots(slots...)
 	ranking.UpdateRanks()
 
 	rankingGraph.AddVertex(ranking)

@@ -214,7 +214,7 @@ func (e *EliminationEditingPolicy) EditableMatches() []*Match {
 }
 
 // Updates the return value of EditableMatches
-func (e *EliminationEditingPolicy) Update() {
+func (e *EliminationEditingPolicy) UpdateEditableMatches() {
 	matches := e.matchList.Matches
 	editable := make([]*Match, 0, len(matches))
 
@@ -350,4 +350,8 @@ func NewSingleElimination(entries Ranking) *SingleElimination {
 
 func NewConsolationElimination(entries Ranking, rankingGraph *RankingGraph) *SingleElimination {
 	return createSingleElimination(entries, false, rankingGraph)
+}
+
+func NewGroupKnockoutSingleElimination(entries Ranking, rankingGraph *RankingGraph) *BaseTournament[*EliminationRanking] {
+	return &createSingleElimination(entries, true, rankingGraph).BaseTournament
 }

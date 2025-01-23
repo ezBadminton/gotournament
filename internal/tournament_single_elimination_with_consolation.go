@@ -27,10 +27,11 @@ type SingleEliminationWithConsolation struct {
 func (t *SingleEliminationWithConsolation) InitTournament(
 	entries Ranking,
 	numConsolationRounds, placesToPlayOut int,
+	rankingGraph *RankingGraph,
 ) {
 	t.Brackets = make([]*ConsolationBracket, 0, 16)
 
-	mainElimination := NewSingleElimination(entries)
+	mainElimination := createSingleElimination(entries, true, rankingGraph)
 	t.MainBracket = newBracket(mainElimination)
 	t.RankingGraph = mainElimination.RankingGraph
 	t.EliminationGraph = mainElimination.EliminationGraph
@@ -225,9 +226,10 @@ func placesToFinals(numPlaces int) int {
 	return numFinals
 }
 
-func NewSingleEliminationWithConsolation(
+func createSingleEliminationWithConsolation(
 	entries Ranking,
 	numConsolationRounds, placesToPlayOut int,
+	rankingGraph *RankingGraph,
 ) *SingleEliminationWithConsolation {
 	consolationTournament := &SingleEliminationWithConsolation{
 		BaseTournament: NewBaseTournament[*EliminationRanking](entries),
@@ -236,6 +238,7 @@ func NewSingleEliminationWithConsolation(
 		entries,
 		numConsolationRounds,
 		placesToPlayOut,
+		rankingGraph,
 	)
 
 	matchList := consolationTournament.MatchList
@@ -256,4 +259,31 @@ func NewSingleEliminationWithConsolation(
 	consolationTournament.Update(nil)
 
 	return consolationTournament
+}
+
+func NewSingleEliminationWithConsolation(
+	entries Ranking,
+	numConsolationRounds, placesToPlayOut int,
+) *SingleEliminationWithConsolation {
+	return createSingleEliminationWithConsolation(
+		entries,
+		numConsolationRounds,
+		placesToPlayOut,
+		nil,
+	)
+}
+
+func SingleEliminationWithConsolationBuilder(
+	numConsolationRounds, placesToPlayOut int,
+) KnockoutBuilder {
+	builder := func(entries Ranking, rankingGraph *RankingGraph) *BaseTournament[*EliminationRanking] {
+		return &createSingleEliminationWithConsolation(
+			entries,
+			numConsolationRounds,
+			placesToPlayOut,
+			rankingGraph,
+		).BaseTournament
+	}
+
+	return builder
 }

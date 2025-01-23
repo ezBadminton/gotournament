@@ -116,7 +116,7 @@ func (e *RoundRobinEditingPolicy) EditableMatches() []*Match {
 }
 
 // Updates the return value of EditableMatches
-func (e *RoundRobinEditingPolicy) Update() {
+func (e *RoundRobinEditingPolicy) UpdateEditableMatches() {
 	editableMatches := make([]*Match, 0, len(e.matches))
 	for _, m := range e.matches {
 		winner, _ := m.GetWinner()
@@ -138,24 +138,7 @@ type RoundRobinWithdrawalPolicy struct {
 // The specific matches that the player was withdrawn from
 // are returned.
 func (w *RoundRobinWithdrawalPolicy) WithdrawPlayer(player Player) []*Match {
-	matches := w.matchList.MatchesOfPlayer(player)
-
-	allMatchesComplete := true
-	for _, m := range matches {
-		winner, _ := m.GetWinner()
-		if winner == nil {
-			allMatchesComplete = false
-			break
-		}
-	}
-
-	var withdrawnMatches []*Match
-
-	if allMatchesComplete {
-		withdrawnMatches = []*Match{}
-	} else {
-		withdrawnMatches = matches
-	}
+	withdrawnMatches := w.matchList.MatchesOfPlayer(player)
 
 	for _, m := range withdrawnMatches {
 		m.WithdrawnPlayers = append(m.WithdrawnPlayers, player)
@@ -196,7 +179,6 @@ func createRoundRobin(entries Ranking, passes int, walkoverScore Score, rankingG
 	matchList := roundRobin.MatchList
 
 	editingPolicy := &RoundRobinEditingPolicy{matches: matchList.Matches}
-	editingPolicy.Update()
 
 	withdrawalPolicy := &RoundRobinWithdrawalPolicy{matchList: matchList}
 
