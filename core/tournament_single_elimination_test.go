@@ -7,7 +7,7 @@ import (
 )
 
 // Run through a 4-player tournament with no special cases
-func TestSmallTournament(t *testing.T) {
+func TestSmallSingleElimination(t *testing.T) {
 	players, err := PlayerSlice(4)
 	if err != nil {
 		t.Fatal(err)
@@ -109,7 +109,7 @@ func TestSmallTournament(t *testing.T) {
 
 // Test a 6-player tournament that would generate two bye-slots to get
 // to a balanced 8 starter slots
-func TestUnbalancedTournament(t *testing.T) {
+func TestSingleEliminationUnbalanced(t *testing.T) {
 	players, err := PlayerSlice(6)
 	if err != nil {
 		t.Fatal(err)
@@ -151,7 +151,7 @@ func TestUnbalancedTournament(t *testing.T) {
 }
 
 // Test the withdrawal of players
-func TestWithdrawal(t *testing.T) {
+func TestSingleEliminationWithdrawalPolicy(t *testing.T) {
 	players, err := PlayerSlice(8)
 	if err != nil {
 		t.Fatal(err)
@@ -302,7 +302,7 @@ func TestWithdrawal(t *testing.T) {
 	}
 }
 
-func TestEditingPolicy(t *testing.T) {
+func TestSingleEliminationEditingPolicy(t *testing.T) {
 	players, err := PlayerSlice(8)
 	if err != nil {
 		t.Fatal(err)
