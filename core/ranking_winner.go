@@ -17,11 +17,11 @@ func (r *WinnerRanking) updateRanks() {
 	winner, err := r.Match.GetWinner()
 	if err == ErrBothBye || err == ErrBothWalkover || err == ErrByeAndWalkover {
 		byeSlot := NewByeSlot(false)
-		r.Ranks = []*Slot{byeSlot, byeSlot}
+		r.ranks = []*Slot{byeSlot, byeSlot}
 		return
 	}
 	if winner == nil {
-		r.Ranks = make([]*Slot, 0)
+		r.ranks = make([]*Slot, 0)
 		return
 	}
 
@@ -39,7 +39,7 @@ func (r *WinnerRanking) updateRanks() {
 
 	slots := []*Slot{winner, loser}
 
-	r.Ranks = slots
+	r.ranks = slots
 }
 
 // Creates a new WinnerRanking

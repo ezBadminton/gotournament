@@ -25,7 +25,7 @@ func (t *GroupKnockout) initTournament(
 	numGroups, numQualifications int,
 	walkoverScore Score,
 ) error {
-	numEntries := len(entries.GetRanks())
+	numEntries := len(entries.Ranks())
 
 	if numEntries < 2 {
 		return ErrTooFewEntries

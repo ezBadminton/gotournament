@@ -98,7 +98,7 @@ func (r *GroupQualificationRanking) createGroupQualifications() []*groupQualific
 	}
 
 	numContested := numQualifcations % numGroups
-	contestedSlots := r.source.GetRanks()[len(qualifications) : len(qualifications)+numContested]
+	contestedSlots := r.source.Ranks()[len(qualifications) : len(qualifications)+numContested]
 
 	for i, slot := range contestedSlots {
 		group := i
@@ -120,7 +120,7 @@ func (r *GroupQualificationRanking) createGroupQualifications() []*groupQualific
 
 func (r *GroupQualificationRanking) groupOfSlot(slot *Slot) int {
 	for i, g := range r.source.groups {
-		entrySlots := g.Entries.GetRanks()
+		entrySlots := g.Entries.Ranks()
 		if slices.Contains(entrySlots, slot) {
 			return i
 		}

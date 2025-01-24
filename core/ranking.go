@@ -9,7 +9,7 @@ import (
 // A Ranking orders a set of Slots according to an implementation specific metric.
 type Ranking interface {
 	// Returns the current ranks
-	GetRanks() []*Slot
+	Ranks() []*Slot
 
 	// Returns the occupant of the ith place in the Ranking.
 	// Returns nil if the place is unoccupied or out of bounds.
@@ -31,20 +31,20 @@ type Ranking interface {
 }
 
 type BaseRanking struct {
-	Ranks          []*Slot
-	id             int
+	ranks          []*Slot
 	dependantSlots []*Slot
+	id             int
 }
 
-func (r *BaseRanking) GetRanks() []*Slot {
-	return r.Ranks
+func (r *BaseRanking) Ranks() []*Slot {
+	return r.ranks
 }
 
 func (r *BaseRanking) At(i int) *Slot {
-	if i >= len(r.Ranks) || i < 0 {
+	if i >= len(r.ranks) || i < 0 {
 		return nil
 	}
-	return r.Ranks[i]
+	return r.ranks[i]
 }
 
 func (r *BaseRanking) updateRanks() {}
@@ -69,7 +69,7 @@ func NewBaseRanking() BaseRanking {
 // Creates a BaseRanking with the given slots as the ranks
 func NewSlotRanking(slots []*Slot) *BaseRanking {
 	ranking := NewBaseRanking()
-	ranking.Ranks = slots
+	ranking.ranks = slots
 	return &ranking
 }
 
@@ -127,12 +127,12 @@ func (r *BaseTieableRanking) UnbrokenTiedRanks() [][]*Slot {
 }
 
 func (r *BaseTieableRanking) AddTieBreaker(tieBreaker Ranking) {
-	tieHash := TieHash(tieBreaker.GetRanks())
+	tieHash := TieHash(tieBreaker.Ranks())
 	r.tieBreakers[tieHash] = tieBreaker
 }
 
 func (r *BaseTieableRanking) RemoveTieBreaker(tieBreaker Ranking) {
-	tieHash := TieHash(tieBreaker.GetRanks())
+	tieHash := TieHash(tieBreaker.Ranks())
 	delete(r.tieBreakers, tieHash)
 }
 
@@ -207,7 +207,7 @@ func (r *BaseTieableRanking) TryTieBreak(tie []*Slot) [][]*Slot {
 		return [][]*Slot{tie}
 	}
 
-	breakerRanks := tieBreaker.GetRanks()
+	breakerRanks := tieBreaker.Ranks()
 	breakerIds := make([]string, 0, len(breakerRanks))
 	for _, s := range breakerRanks {
 		breakerIds = append(breakerIds, s.Player().Id())
@@ -233,7 +233,7 @@ func (r *BaseTieableRanking) TryTieBreak(tie []*Slot) [][]*Slot {
 func (r *BaseTieableRanking) ProcessUpdate(updatedTiedRanks [][]*Slot) {
 	r.unbrokenTiedRanks = updatedTiedRanks
 	r.tiedRanks = r.applyTieBreakers(updatedTiedRanks)
-	r.Ranks = flattenTiedRanks(r.tiedRanks)
+	r.ranks = flattenTiedRanks(r.tiedRanks)
 }
 
 func (r *BaseTieableRanking) applyTieBreakers(tiedRanks [][]*Slot) [][]*Slot {

@@ -9,14 +9,14 @@ type EvenRanking struct {
 }
 
 func (r *EvenRanking) updateRanks() {
-	sourceRanks := r.sourceRanking.GetRanks()
+	sourceRanks := r.sourceRanking.Ranks()
 
 	if len(sourceRanks)%2 != 0 {
 		byeSlot := NewByeSlot(true)
 		sourceRanks = append(sourceRanks, byeSlot)
 	}
 
-	r.Ranks = sourceRanks
+	r.ranks = sourceRanks
 }
 
 func NewEvenRanking(source Ranking, rankingGraph *RankingGraph) *EvenRanking {

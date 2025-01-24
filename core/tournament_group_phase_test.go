@@ -19,7 +19,7 @@ func TestGroupSeeding(t *testing.T) {
 
 	groupSlots := make([][]*Slot, 0, 4)
 	for _, g := range groups {
-		groupSlots = append(groupSlots, g.Entries.GetRanks())
+		groupSlots = append(groupSlots, g.Entries.Ranks())
 	}
 
 	eq1 := groupSlots[0][0].Player() == players[0]
@@ -59,7 +59,7 @@ func TestGroupSeeding(t *testing.T) {
 
 	groupSlots = make([][]*Slot, 0, 4)
 	for _, g := range groups {
-		groupSlots = append(groupSlots, g.Entries.GetRanks())
+		groupSlots = append(groupSlots, g.Entries.Ranks())
 	}
 
 	eq1 = len(groupSlots[0]) == 1

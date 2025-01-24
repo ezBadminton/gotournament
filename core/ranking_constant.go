@@ -22,7 +22,7 @@ func NewConstantRanking(players []Player) *ConstantRanking {
 		slots = append(slots, NewPlayerSlot(p))
 	}
 	baseRanking := NewBaseRanking()
-	baseRanking.Ranks = slots
+	baseRanking.ranks = slots
 	ranking := &ConstantRanking{BaseRanking: baseRanking}
 
 	return ranking

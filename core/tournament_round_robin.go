@@ -15,7 +15,7 @@ func (t *RoundRobin) initTournament(
 	walkoverScore Score,
 	rankingGraph *RankingGraph,
 ) error {
-	if len(entries.GetRanks()) < 1 {
+	if len(entries.Ranks()) < 1 {
 		return ErrTooFewEntries
 	}
 
@@ -26,7 +26,7 @@ func (t *RoundRobin) initTournament(
 	}
 
 	evenEntries := NewEvenRanking(entries, rankingGraph)
-	entrySlots := evenEntries.GetRanks()
+	entrySlots := evenEntries.Ranks()
 
 	if passes < 1 {
 		passes = 1

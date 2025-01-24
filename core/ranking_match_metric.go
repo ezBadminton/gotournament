@@ -178,7 +178,7 @@ func createMatchMetricRanking(
 	requiredUntiedRanks int,
 	rankingGraph *RankingGraph,
 ) *MatchMetricRanking {
-	entrySlots := entries.GetRanks()
+	entrySlots := entries.Ranks()
 	players := make([]Player, 0, len(entrySlots))
 
 	for _, s := range entrySlots {

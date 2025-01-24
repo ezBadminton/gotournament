@@ -13,13 +13,13 @@ type BalancedRanking struct {
 // Should be called whenever a result that influences the
 // ranking becomes known.
 func (r *BalancedRanking) updateRanks() {
-	sourceRanks := r.sourceRanking.GetRanks()
+	sourceRanks := r.sourceRanking.Ranks()
 	sourceNumSlots := len(sourceRanks)
 	numSlots := nextPowerOfTwo(sourceNumSlots)
 	padding := numSlots - sourceNumSlots
 
 	if padding == 0 {
-		r.Ranks = sourceRanks
+		r.ranks = sourceRanks
 		return
 	}
 
@@ -28,7 +28,7 @@ func (r *BalancedRanking) updateRanks() {
 	for range padding {
 		slots = append(slots, NewByeSlot(true))
 	}
-	r.Ranks = slots
+	r.ranks = slots
 }
 
 func NewBalancedRanking(source Ranking, rankingGraph *RankingGraph) *BalancedRanking {

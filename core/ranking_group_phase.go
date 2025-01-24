@@ -26,7 +26,7 @@ func (r *GroupPhaseRanking) updateRanks() {
 	contestedRank, numContested := r.contestedRank()
 	r.collectGroupTies(groupRankings)
 	tiesPresent := len(r.GroupTies) > 0
-	maxNumRanks := len(r.groups[numGroups-1].Entries.GetRanks())
+	maxNumRanks := len(r.groups[numGroups-1].Entries.Ranks())
 
 	ranks := make([][]*Slot, 0, maxNumRanks*numGroups)
 	for i := range maxNumRanks {

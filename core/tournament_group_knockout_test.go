@@ -164,7 +164,7 @@ func TestGroupKnockoutContestedQualifications(t *testing.T) {
 	}
 	tournament.Update(nil)
 
-	knockOutEntrySlots := tournament.knockOut.Entries.GetRanks()
+	knockOutEntrySlots := tournament.knockOut.Entries.Ranks()
 	eq1 := knockOutEntrySlots[0].Player() == players[11]
 	eq2 := knockOutEntrySlots[1].Player() == players[10]
 	eq3 := knockOutEntrySlots[2].Player() == players[9]

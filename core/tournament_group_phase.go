@@ -20,7 +20,7 @@ func (t *GroupPhase) initTournament(
 		qualsPerGroup += 1
 	}
 
-	entrySlots := entries.GetRanks()
+	entrySlots := entries.Ranks()
 
 	slotGroups := groupSlots(entrySlots, numGroups)
 	t.Groups = make([]*RoundRobin, 0, len(slotGroups))

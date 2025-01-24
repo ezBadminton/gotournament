@@ -43,7 +43,7 @@ func (r *EliminationRanking) updateRanks() {
 		}
 	}
 
-	entrySlots := r.Entries.GetRanks()
+	entrySlots := r.Entries.Ranks()
 	occupiedEntrySlots := make([]*Slot, 0, len(entrySlots))
 	for _, s := range entrySlots {
 		if s.Player() != nil {

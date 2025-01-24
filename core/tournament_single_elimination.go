@@ -13,7 +13,7 @@ func (t *SingleElimination) initTournament(
 	seeded bool,
 	rankingGraph *RankingGraph,
 ) error {
-	if len(entries.GetRanks()) < 2 {
+	if len(entries.Ranks()) < 2 {
 		return ErrTooFewEntries
 	}
 
@@ -28,7 +28,7 @@ func (t *SingleElimination) initTournament(
 	t.EliminationGraph = NewEliminationGraph()
 
 	balancedEntries := NewBalancedRanking(entries, rankingGraph)
-	entrySlots := balancedEntries.GetRanks()
+	entrySlots := balancedEntries.Ranks()
 
 	numRounds := getNumRounds(len(entrySlots))
 
