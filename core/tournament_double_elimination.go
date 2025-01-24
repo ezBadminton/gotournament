@@ -16,10 +16,10 @@ type DoubleElimination struct {
 func (t *DoubleElimination) initTournament(
 	entries Ranking,
 	rankingGraph *RankingGraph,
-) {
+) error {
 	winnerBracket, err := createSingleElimination(entries, true, rankingGraph)
 	if err != nil {
-		panic("could not create winner bracket")
+		return err
 	}
 	t.WinnerBracket = winnerBracket
 	t.RankingGraph = t.WinnerBracket.RankingGraph
@@ -46,6 +46,8 @@ func (t *DoubleElimination) initTournament(
 	)
 
 	t.addTournamentData(matchList, t.RankingGraph, finalRanking)
+
+	return nil
 }
 
 func (t *DoubleElimination) createMinorLoserRound() []*Match {
@@ -165,14 +167,13 @@ func swapHalves[S ~[]E, E any](s S) {
 }
 
 func createDoubleElimination(entries Ranking, rankingGraph *RankingGraph) (*DoubleElimination, error) {
-	if len(entries.GetRanks()) < 2 {
-		return nil, ErrTooFewEntries
-	}
-
 	doubleElimination := &DoubleElimination{
 		BaseTournament: newBaseTournament[*EliminationRanking](entries),
 	}
-	doubleElimination.initTournament(entries, rankingGraph)
+	err := doubleElimination.initTournament(entries, rankingGraph)
+	if err != nil {
+		return nil, err
+	}
 
 	matchList := doubleElimination.MatchList
 	eliminationGraph := doubleElimination.EliminationGraph

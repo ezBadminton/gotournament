@@ -24,7 +24,22 @@ func (t *GroupKnockout) initTournament(
 	knockoutBuilder KnockoutBuilder,
 	numGroups, numQualifications int,
 	walkoverScore Score,
-) {
+) error {
+	numEntries := len(entries.GetRanks())
+
+	if numEntries < 2 {
+		return ErrTooFewEntries
+	}
+	if numGroups < 1 {
+		return ErrTooFewGroups
+	}
+	if 2*numGroups > numEntries {
+		return ErrTooManyGroups
+	}
+	if numQualifications < 2 {
+		return ErrTooFewQuals
+	}
+
 	rankingGraph := NewRankingGraph(entries)
 
 	t.groupPhase = newGroupPhase(entries, numGroups, numQualifications, walkoverScore, rankingGraph)
@@ -34,7 +49,7 @@ func (t *GroupKnockout) initTournament(
 
 	knockOut, err := knockoutBuilder(qualificationRanking, rankingGraph)
 	if err != nil {
-		panic("could not create knock out")
+		return err
 	}
 	t.knockOut = knockOut
 
@@ -45,6 +60,8 @@ func (t *GroupKnockout) initTournament(
 	rankingGraph.AddEdge(t.knockOut.FinalRanking, finalRanking)
 
 	t.addTournamentData(matchList, rankingGraph, finalRanking)
+
+	return nil
 }
 
 func (t *GroupKnockout) createMatchList() *MatchList {
@@ -107,28 +124,19 @@ func NewGroupKnockout(
 	numGroups, numQualifications int,
 	walkoverScore Score,
 ) (*GroupKnockout, error) {
-	numEntries := len(entries.GetRanks())
-
-	if numEntries < 2 {
-		return nil, ErrTooFewEntries
-	}
-	if numGroups < 1 {
-		return nil, ErrTooFewGroups
-	}
-	if 2*numGroups > numEntries {
-		return nil, ErrTooManyGroups
-	}
-
 	groupKnockout := &GroupKnockout{
 		BaseTournament: newBaseTournament[*GroupKnockoutRanking](entries),
 	}
-	groupKnockout.initTournament(
+	err := groupKnockout.initTournament(
 		entries,
 		knockoutBuilder,
 		numGroups,
 		numQualifications,
 		walkoverScore,
 	)
+	if err != nil {
+		return nil, err
+	}
 
 	editingPolicy := &GroupKnockoutEditingPolicy{
 		groupPhase: groupKnockout.groupPhase,

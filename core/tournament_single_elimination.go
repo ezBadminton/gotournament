@@ -12,7 +12,11 @@ func (t *SingleElimination) initTournament(
 	entries Ranking,
 	seeded bool,
 	rankingGraph *RankingGraph,
-) {
+) error {
+	if len(entries.GetRanks()) < 2 {
+		return ErrTooFewEntries
+	}
+
 	if rankingGraph == nil {
 		rankingGraph = NewRankingGraph(entries)
 	} else {
@@ -63,6 +67,8 @@ func (t *SingleElimination) initTournament(
 	finalRanking := NewEliminationRanking(matchList, entries, finalsRanking, rankingGraph)
 
 	t.addTournamentData(matchList, rankingGraph, finalRanking)
+
+	return nil
 }
 
 // Creates matches with the slots taken pair-wise from
@@ -322,19 +328,18 @@ func (e *EliminationWithdrawalPolicy) ReenterPlayer(player Player) []*Match {
 }
 
 func createSingleElimination(entries Ranking, seeded bool, rankingGraph *RankingGraph) (*SingleElimination, error) {
-	if len(entries.GetRanks()) < 2 {
-		return nil, ErrTooFewEntries
-	}
-
 	singleElimination := &SingleElimination{
 		BaseTournament: newBaseTournament[*EliminationRanking](entries),
 	}
 
-	singleElimination.initTournament(
+	err := singleElimination.initTournament(
 		entries,
 		seeded,
 		rankingGraph,
 	)
+	if err != nil {
+		return nil, err
+	}
 
 	eliminationGraph := singleElimination.EliminationGraph
 	matchList := singleElimination.MatchList

@@ -28,12 +28,12 @@ func (t *SingleEliminationWithConsolation) initTournament(
 	entries Ranking,
 	numConsolationRounds, placesToPlayOut int,
 	rankingGraph *RankingGraph,
-) {
+) error {
 	t.Brackets = make([]*ConsolationBracket, 0, 16)
 
 	mainElimination, err := createSingleElimination(entries, true, rankingGraph)
 	if err != nil {
-		panic("could not create main elimination")
+		return err
 	}
 	t.MainBracket = newBracket(mainElimination)
 	t.RankingGraph = mainElimination.RankingGraph
@@ -56,6 +56,8 @@ func (t *SingleEliminationWithConsolation) initTournament(
 	finalRanking := NewEliminationRanking(matchList, entries, finalsRankings, t.RankingGraph)
 
 	t.addTournamentData(matchList, t.RankingGraph, finalRanking)
+
+	return nil
 }
 
 func (t *SingleEliminationWithConsolation) createConsolationBrackets(
@@ -237,19 +239,18 @@ func createSingleEliminationWithConsolation(
 	numConsolationRounds, placesToPlayOut int,
 	rankingGraph *RankingGraph,
 ) (*SingleEliminationWithConsolation, error) {
-	if len(entries.GetRanks()) < 2 {
-		return nil, ErrTooFewEntries
-	}
-
 	consolationTournament := &SingleEliminationWithConsolation{
 		BaseTournament: newBaseTournament[*EliminationRanking](entries),
 	}
-	consolationTournament.initTournament(
+	err := consolationTournament.initTournament(
 		entries,
 		numConsolationRounds,
 		placesToPlayOut,
 		rankingGraph,
 	)
+	if err != nil {
+		return nil, err
+	}
 
 	matchList := consolationTournament.MatchList
 	eliminationGraph := consolationTournament.EliminationGraph

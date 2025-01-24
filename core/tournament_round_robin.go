@@ -14,7 +14,11 @@ func (t *RoundRobin) initTournament(
 	passes int,
 	walkoverScore Score,
 	rankingGraph *RankingGraph,
-) {
+) error {
+	if len(entries.GetRanks()) < 1 {
+		return ErrTooFewEntries
+	}
+
 	if rankingGraph == nil {
 		rankingGraph = NewRankingGraph(entries)
 	} else {
@@ -52,6 +56,8 @@ func (t *RoundRobin) initTournament(
 	)
 
 	t.addTournamentData(matchList, rankingGraph, finalRanking)
+
+	return nil
 }
 
 func createRound(entrySlots []*Slot, passI, roundI int) *Round {
@@ -166,19 +172,18 @@ func (w *RoundRobinWithdrawalPolicy) ReenterPlayer(player Player) []*Match {
 }
 
 func createRoundRobin(entries Ranking, passes int, walkoverScore Score, rankingGraph *RankingGraph) (*RoundRobin, error) {
-	if len(entries.GetRanks()) < 2 {
-		return nil, ErrTooFewEntries
-	}
-
 	roundRobin := &RoundRobin{
 		BaseTournament: newBaseTournament[*MatchMetricRanking](entries),
 	}
-	roundRobin.initTournament(
+	err := roundRobin.initTournament(
 		entries,
 		passes,
 		walkoverScore,
 		rankingGraph,
 	)
+	if err != nil {
+		return nil, err
+	}
 
 	matchList := roundRobin.MatchList
 
