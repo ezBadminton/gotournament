@@ -152,3 +152,12 @@ func NewScore(
 
 	return &score{a, b}, nil
 }
+
+func MaxScore(settings scoreSettings) *score {
+	a := make([]int, settings.WinningSets)
+	b := make([]int, settings.WinningSets)
+	for i := range settings.WinningSets {
+		a[i] = settings.WinningPoints
+	}
+	return &score{a, b}
+}

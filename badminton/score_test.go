@@ -223,5 +223,22 @@ func TestValidScores(t *testing.T) {
 	if winner != 0 {
 		t.Fatal("score returned the wrong winner")
 	}
+}
 
+func TestMaxScore(t *testing.T) {
+	settings, _ := NewScoreSettings(21, 2, 30, false)
+	score := MaxScore(settings)
+	a := []int{21, 21}
+	b := []int{0, 0}
+	if !reflect.DeepEqual(score.a, a) || !reflect.DeepEqual(score.b, b) {
+		t.Fatal("max score is incorrect")
+	}
+
+	settings, _ = NewScoreSettings(15, 4, 30, false)
+	score = MaxScore(settings)
+	a = []int{15, 15, 15, 15}
+	b = []int{0, 0, 0, 0}
+	if !reflect.DeepEqual(score.a, a) || !reflect.DeepEqual(score.b, b) {
+		t.Fatal("max score is incorrect")
+	}
 }
