@@ -38,7 +38,7 @@ func (t *SingleElimination) InitTournament(
 			round.Matches = CreatePairedMatches(entrySlots)
 		}
 
-		entrySlots = createWinnerSlots(round.Matches, rankingGraph, t.WinnerRankings)
+		entrySlots = createWinnerRankingSlots(round.Matches, 0, rankingGraph, t.WinnerRankings)
 
 		if i == 0 {
 			for _, s := range entrySlots {
@@ -131,13 +131,21 @@ func arrangeSeeds(numRounds int) []*seedMatchup {
 	return matchups
 }
 
-func createWinnerSlots(matches []*Match, rankingGraph *RankingGraph, winnerRankings map[*Match]*WinnerRanking) []*Slot {
+func createWinnerRankingSlots(
+	matches []*Match,
+	targetRank int,
+	rankingGraph *RankingGraph,
+	winnerRankings map[*Match]*WinnerRanking,
+) []*Slot {
 	slots := make([]*Slot, 0, len(matches))
 	for _, m := range matches {
-		ranking := NewWinnerRanking(m)
+		ranking, ok := winnerRankings[m]
+		if !ok {
+			ranking = NewWinnerRanking(m)
+		}
 		ranking.LinkRankingGraph(rankingGraph, winnerRankings)
 		winnerRankings[m] = ranking
-		placement := NewPlacement(ranking, 0)
+		placement := NewPlacement(ranking, targetRank)
 		slot := NewPlacementSlot(placement)
 		slots = append(slots, slot)
 	}
