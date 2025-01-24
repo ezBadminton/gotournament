@@ -104,9 +104,9 @@ func TestRoundRobin(t *testing.T) {
 
 	ranks = finalRanking.TiedRanks()
 	eq1 = len(ranks) == 3
-	eq2 = len(ranks[0]) == 1 && ranks[0][0].Player() == p1
-	eq3 := len(ranks[1]) == 2 && ranks[1][0].Player() == p2 && ranks[1][1].Player() == p3
-	eq4 := len(ranks[2]) == 1 && ranks[2][0].Player() == p4
+	eq2 = len(ranks[0]) == 1 && ranks[0][0].player == p1
+	eq3 := len(ranks[1]) == 2 && ranks[1][0].player == p2 && ranks[1][1].player == p3
+	eq4 := len(ranks[2]) == 1 && ranks[2][0].player == p4
 	if !eq1 || !eq2 || !eq3 || !eq4 {
 		t.Fatal("The final ranks did not update correctly according to the first match's result")
 	}
@@ -176,8 +176,8 @@ func TestRoundRobinWithdrawal(t *testing.T) {
 	tournament.Update(nil)
 	ranks := finalRanking.TiedRanks()
 	eq1 = len(ranks) == 2
-	eq2 := len(ranks[0]) == 2 && ranks[0][0].Player() == p2 && ranks[0][1].Player() == p3
-	eq3 := len(ranks[1]) == 1 && ranks[1][0].Player() == p1
+	eq2 := len(ranks[0]) == 2 && ranks[0][0].player == p2 && ranks[0][1].player == p3
+	eq3 := len(ranks[1]) == 1 && ranks[1][0].player == p1
 	if !eq1 || !eq2 || !eq3 {
 		t.Fatal("The final ranking did not put the non-withdrawn players to the top and the withdrawn player to the bottom")
 	}
@@ -276,9 +276,9 @@ func TestRoundRobinTies(t *testing.T) {
 	ranks = finalRanking.TiedRanks()
 
 	eq1 = len(ranks) == 3
-	eq2 = len(ranks[0]) == 1 && ranks[0][0].Player() == p1
-	eq3 := len(ranks[1]) == 1 && ranks[1][0].Player() == p2
-	eq4 := len(ranks[2]) == 1 && ranks[2][0].Player() == p3
+	eq2 = len(ranks[0]) == 1 && ranks[0][0].player == p1
+	eq3 := len(ranks[1]) == 1 && ranks[1][0].player == p2
+	eq4 := len(ranks[2]) == 1 && ranks[2][0].player == p3
 	if !eq1 || !eq2 || !eq3 || !eq4 {
 		t.Fatal("The tie breaker did not break the tie in the right order")
 	}
@@ -307,8 +307,8 @@ func TestRoundRobinTies(t *testing.T) {
 
 	eq1 = len(ranks) == 2
 	eq2 = len(ranks[0]) == 2
-	eq3 = ranks[0][0].Player() == p1 && ranks[0][1].Player() == p2
-	eq4 = len(ranks[1]) == 1 && ranks[1][0].Player() == p3
+	eq3 = ranks[0][0].player == p1 && ranks[0][1].player == p2
+	eq4 = len(ranks[1]) == 1 && ranks[1][0].player == p3
 	if !eq1 || !eq2 || !eq3 || !eq4 {
 		t.Fatal("The two winning players are not tied for first and the losing player is not at the bottom of the ranks")
 	}
@@ -319,9 +319,9 @@ func TestRoundRobinTies(t *testing.T) {
 
 	ranks = finalRanking.TiedRanks()
 	eq1 = len(ranks) == 3
-	eq2 = len(ranks[0]) == 1 && ranks[0][0].Player() == p2
-	eq3 = len(ranks[1]) == 1 && ranks[1][0].Player() == p1
-	eq4 = len(ranks[2]) == 1 && ranks[2][0].Player() == p3
+	eq2 = len(ranks[0]) == 1 && ranks[0][0].player == p2
+	eq3 = len(ranks[1]) == 1 && ranks[1][0].player == p1
+	eq4 = len(ranks[2]) == 1 && ranks[2][0].player == p3
 	if !eq1 || !eq2 || !eq3 || !eq4 {
 		t.Fatal("The additional point did not put the player to the top of the ranks")
 	}
@@ -332,9 +332,9 @@ func TestRoundRobinTies(t *testing.T) {
 
 	ranks = finalRanking.TiedRanks()
 	eq1 = len(ranks) == 3
-	eq2 = len(ranks[0]) == 1 && ranks[0][0].Player() == p1
-	eq3 = len(ranks[1]) == 1 && ranks[1][0].Player() == p2
-	eq4 = len(ranks[2]) == 1 && ranks[2][0].Player() == p3
+	eq2 = len(ranks[0]) == 1 && ranks[0][0].player == p1
+	eq3 = len(ranks[1]) == 1 && ranks[1][0].player == p2
+	eq4 = len(ranks[2]) == 1 && ranks[2][0].player == p3
 	if !eq1 || !eq2 || !eq3 || !eq4 {
 		t.Fatal("The additional set did not put the player to the top of the ranks")
 	}
@@ -365,8 +365,8 @@ func TestRoundRobinTies(t *testing.T) {
 
 	eq1 = reflect.DeepEqual(finalRanking.Metrics[p1], finalRanking.Metrics[p2])
 	eq2 = len(ranks) == 4
-	eq3 = ranks[1][0].Player() == p1
-	eq4 = ranks[2][0].Player() == p2
+	eq3 = ranks[1][0].player == p1
+	eq4 = ranks[2][0].player == p2
 	if !eq1 || !eq2 || !eq3 || !eq4 {
 		t.Fatal("The players with equal match metrics were not ranked by the result of their direct encounter")
 	}

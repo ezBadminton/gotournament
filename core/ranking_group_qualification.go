@@ -102,7 +102,7 @@ func (r *GroupQualificationRanking) createGroupQualifications() []*groupQualific
 
 	for i, slot := range contestedSlots {
 		group := i
-		if slot.Player() != nil {
+		if slot.player != nil {
 			group = r.groupOfSlot(slot)
 			if group == -1 {
 				panic("Could not find slot in the groups")
@@ -267,7 +267,7 @@ func NewGroupQualificationRanking(source *GroupPhaseRanking, rankingGraph *Ranki
 		source:      source,
 		placements:  placements,
 	}
-	ranking.AddDependantSlots(slots...)
+	ranking.addDependantSlots(slots...)
 	ranking.updateRanks()
 
 	rankingGraph.AddVertex(ranking)

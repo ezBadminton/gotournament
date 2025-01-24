@@ -121,10 +121,10 @@ func (m *Match) WithdrawnSlots() []*Slot {
 
 	withdrawn1, withdrawn2 := false, false
 	for _, p := range m.WithdrawnPlayers {
-		if p == m.Slot1.Player() {
+		if p == m.Slot1.player {
 			withdrawn1 = true
 		}
-		if p == m.Slot2.Player() {
+		if p == m.Slot2.player {
 			withdrawn2 = true
 		}
 	}
@@ -148,14 +148,14 @@ func (m *Match) HasBye() bool {
 }
 
 func (m *Match) HasDrawnBye() bool {
-	bye1 := m.Slot1.Bye()
-	bye2 := m.Slot2.Bye()
+	bye1 := m.Slot1.bye
+	bye2 := m.Slot2.bye
 
 	return (bye1 != nil && bye1.Drawn) || (bye2 != nil && bye2.Drawn)
 }
 
 func (m *Match) ContainsPlayer(player Player) bool {
-	return m.Slot1.Player() == player || m.Slot2.Player() == player
+	return m.Slot1.player == player || m.Slot2.player == player
 }
 
 // Returns true when the given player has withdrawn
@@ -163,7 +163,7 @@ func (m *Match) ContainsPlayer(player Player) bool {
 func (m *Match) IsPlayerWithdrawn(player Player) bool {
 	withdrawnSlots := m.WithdrawnSlots()
 	for _, s := range withdrawnSlots {
-		if s.Player() == player {
+		if s.player == player {
 			return true
 		}
 	}
@@ -196,14 +196,14 @@ func (m *Match) Id() int {
 
 func (m *Match) String() string {
 	var sb strings.Builder
-	p1 := m.Slot1.Player()
+	p1 := m.Slot1.player
 	if p1 == nil {
 		sb.WriteString("[Empty]")
 	} else {
 		sb.WriteString(p1.Id())
 	}
 	sb.WriteString(" vs. ")
-	p2 := m.Slot2.Player()
+	p2 := m.Slot2.player
 	if p2 == nil {
 		sb.WriteString("[Empty]")
 	} else {

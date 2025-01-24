@@ -22,18 +22,18 @@ type Ranking interface {
 
 	// All slots that resolve their qualification from this
 	// ranking are added here.
-	AddDependantSlots(slots ...*Slot)
+	addDependantSlots(slots ...*Slot)
 
 	// Returns all dependant slots
-	DependantSlots() []*Slot
+	dependantSlots() []*Slot
 
 	GraphNode
 }
 
 type BaseRanking struct {
-	ranks          []*Slot
-	dependantSlots []*Slot
-	id             int
+	ranks    []*Slot
+	depSlots []*Slot
+	id       int
 }
 
 func (r *BaseRanking) Ranks() []*Slot {
@@ -49,12 +49,12 @@ func (r *BaseRanking) At(i int) *Slot {
 
 func (r *BaseRanking) updateRanks() {}
 
-func (r *BaseRanking) AddDependantSlots(slots ...*Slot) {
-	r.dependantSlots = append(r.dependantSlots, slots...)
+func (r *BaseRanking) addDependantSlots(slots ...*Slot) {
+	r.depSlots = append(r.depSlots, slots...)
 }
 
-func (r *BaseRanking) DependantSlots() []*Slot {
-	return r.dependantSlots
+func (r *BaseRanking) dependantSlots() []*Slot {
+	return r.depSlots
 }
 
 func (r *BaseRanking) Id() int {
@@ -142,7 +142,7 @@ func (r *BaseTieableRanking) RemoveTieBreaker(tieBreaker Ranking) {
 func TieHash(tie []*Slot) string {
 	playerIds := make([]string, 0, len(tie))
 	for _, s := range tie {
-		playerIds = append(playerIds, s.Player().Id())
+		playerIds = append(playerIds, s.player.Id())
 	}
 
 	slices.Sort(playerIds)
@@ -210,12 +210,12 @@ func (r *BaseTieableRanking) TryTieBreak(tie []*Slot) [][]*Slot {
 	breakerRanks := tieBreaker.Ranks()
 	breakerIds := make([]string, 0, len(breakerRanks))
 	for _, s := range breakerRanks {
-		breakerIds = append(breakerIds, s.Player().Id())
+		breakerIds = append(breakerIds, s.player.Id())
 	}
 
 	slices.SortFunc(tie, func(a, b *Slot) int {
-		indexA := slices.Index(breakerIds, a.Player().Id())
-		indexB := slices.Index(breakerIds, b.Player().Id())
+		indexA := slices.Index(breakerIds, a.player.Id())
+		indexB := slices.Index(breakerIds, b.player.Id())
 		return cmp.Compare(indexA, indexB)
 	})
 
@@ -255,7 +255,7 @@ func (r *BaseTieableRanking) String() string {
 
 	for _, r := range r.TiedRanks() {
 		for _, s := range r {
-			player := s.Player()
+			player := s.player
 			if player == nil {
 				sb.WriteString("Empty slot\n")
 			} else {

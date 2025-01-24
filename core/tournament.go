@@ -79,8 +79,6 @@ type EditingPolicy interface {
 type Tournament interface {
 	// Update the tournament's slots and rankings.
 	Update(start Ranking)
-
-	GetMatchList() *MatchList
 }
 
 type BaseTournament[FinalRanking Ranking] struct {
@@ -105,16 +103,12 @@ func (t *BaseTournament[_]) Update(start Ranking) {
 	bfs := t.RankingGraph.BreadthSearchIter(start)
 	for ranking := range bfs {
 		ranking.updateRanks()
-		for _, s := range ranking.DependantSlots() {
+		for _, s := range ranking.dependantSlots() {
 			s.Update()
 		}
 	}
 
 	t.EditingPolicy.updateEditableMatches()
-}
-
-func (t *BaseTournament[_]) GetMatchList() *MatchList {
-	return t.MatchList
 }
 
 func (t *BaseTournament[_]) Id() int {

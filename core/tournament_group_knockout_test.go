@@ -33,8 +33,8 @@ func TestGroupKnockoutStructure(t *testing.T) {
 	ranks := tournament.FinalRanking.TiedRanks()
 
 	eq1 = len(ranks) == 3
-	eq2 := ranks[1][0].Player() == players[0]
-	eq3 := ranks[2][0].Player() == players[8]
+	eq2 := ranks[1][0].player == players[0]
+	eq3 := ranks[2][0].player == players[8]
 	if !eq1 || !eq2 || !eq3 {
 		t.Fatal("The final ranking did not update properly")
 	}
@@ -57,8 +57,8 @@ func TestGroupKnockoutQualification(t *testing.T) {
 
 	for _, m := range tournament.Matches[:24] {
 		if !m.HasBye() {
-			p1 := slices.Index(players, m.Slot1.Player())
-			p2 := slices.Index(players, m.Slot2.Player())
+			p1 := slices.Index(players, m.Slot1.player)
+			p2 := slices.Index(players, m.Slot2.player)
 			var score Score = NewScore(max(p1, p2)+1, 0)
 			if p2 > p1 {
 				score = score.Invert()
@@ -77,13 +77,13 @@ func TestGroupKnockoutQualification(t *testing.T) {
 
 	firstKnockOutRound := tournament.knockOut.Rounds[0]
 	m := firstKnockOutRound.Matches[0]
-	eq1 = m.Slot1.Player() == players[8] && m.Slot2.Player() == players[6]
+	eq1 = m.Slot1.player == players[8] && m.Slot2.player == players[6]
 	m = firstKnockOutRound.Matches[1]
-	eq2 := m.Slot1.Player() == players[11] && m.Slot2.Player() == players[5]
+	eq2 := m.Slot1.player == players[11] && m.Slot2.player == players[5]
 	m = firstKnockOutRound.Matches[2]
-	eq3 := m.Slot1.Player() == players[9] && m.Slot2.Player() == players[7]
+	eq3 := m.Slot1.player == players[9] && m.Slot2.player == players[7]
 	m = firstKnockOutRound.Matches[3]
-	eq4 := m.Slot1.Player() == players[10] && m.Slot2.Player() == players[4]
+	eq4 := m.Slot1.player == players[10] && m.Slot2.player == players[4]
 	if !eq1 || !eq2 || !eq3 || !eq4 {
 		t.Fatal("The qualified players are not seeded correctly in the knockout")
 	}
@@ -105,8 +105,8 @@ func TestGroupKnockoutUnbalancedQualifications(t *testing.T) {
 	)
 
 	for _, m := range tournament.Matches[:18] {
-		p1 := slices.Index(players, m.Slot1.Player())
-		p2 := slices.Index(players, m.Slot2.Player())
+		p1 := slices.Index(players, m.Slot1.player)
+		p2 := slices.Index(players, m.Slot2.player)
 		var score Score = NewScore(max(p1, p2)+1, 0)
 		if p2 > p1 {
 			score = score.Invert()
@@ -120,17 +120,17 @@ func TestGroupKnockoutUnbalancedQualifications(t *testing.T) {
 	knockOutMatches := tournament.knockOut.Matches
 
 	m := knockOutMatches[0]
-	eq1 := m.Slot1.Player() == players[11] && m.Slot2.IsBye()
+	eq1 := m.Slot1.player == players[11] && m.Slot2.IsBye()
 	m = knockOutMatches[1]
-	eq2 := m.Slot1.Player() == players[9] && m.Slot2.Player() == players[7]
+	eq2 := m.Slot1.player == players[9] && m.Slot2.player == players[7]
 	m = knockOutMatches[2]
-	eq3 := m.Slot1.Player() == players[10] && m.Slot2.IsBye()
+	eq3 := m.Slot1.player == players[10] && m.Slot2.IsBye()
 	m = knockOutMatches[3]
-	eq4 := m.Slot1.Player() == players[6] && m.Slot2.Player() == players[8]
+	eq4 := m.Slot1.player == players[6] && m.Slot2.player == players[8]
 	m = knockOutMatches[4]
-	eq5 := m.Slot1.Player() == players[11] && m.Slot2.Player() == nil
+	eq5 := m.Slot1.player == players[11] && m.Slot2.player == nil
 	m = knockOutMatches[5]
-	eq6 := m.Slot1.Player() == players[10] && m.Slot2.Player() == nil
+	eq6 := m.Slot1.player == players[10] && m.Slot2.player == nil
 	if !eq1 || !eq2 || !eq3 || !eq4 || !eq5 || !eq6 {
 		t.Fatal("The qualified players are not seeded correctly in the knockout")
 	}
@@ -152,8 +152,8 @@ func TestGroupKnockoutContestedQualifications(t *testing.T) {
 	)
 
 	for _, m := range tournament.Matches[:18] {
-		p1 := slices.Index(players, m.Slot1.Player())
-		p2 := slices.Index(players, m.Slot2.Player())
+		p1 := slices.Index(players, m.Slot1.player)
+		p2 := slices.Index(players, m.Slot2.player)
 		var score Score = NewScore(max(p1, p2)+1, 0)
 		if p2 > p1 {
 			score = score.Invert()
@@ -165,11 +165,11 @@ func TestGroupKnockoutContestedQualifications(t *testing.T) {
 	tournament.Update(nil)
 
 	knockOutEntrySlots := tournament.knockOut.Entries.Ranks()
-	eq1 := knockOutEntrySlots[0].Player() == players[11]
-	eq2 := knockOutEntrySlots[1].Player() == players[10]
-	eq3 := knockOutEntrySlots[2].Player() == players[9]
-	eq4 := knockOutEntrySlots[3].Player() == players[8]
-	eq5 := knockOutEntrySlots[4].Player() == players[7]
+	eq1 := knockOutEntrySlots[0].player == players[11]
+	eq2 := knockOutEntrySlots[1].player == players[10]
+	eq3 := knockOutEntrySlots[2].player == players[9]
+	eq4 := knockOutEntrySlots[3].player == players[8]
+	eq5 := knockOutEntrySlots[4].player == players[7]
 	if !eq1 || !eq2 || !eq3 || !eq4 || !eq5 {
 		t.Fatal("The qualified players are not the correct ones")
 	}

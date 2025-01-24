@@ -42,8 +42,8 @@ func extractMatchMetrics(
 	metrics map[Player]*MatchMetrics,
 	walkoverScore Score,
 ) {
-	p1 := match.Slot1.Player()
-	p2 := match.Slot2.Player()
+	p1 := match.Slot1.player
+	p2 := match.Slot2.player
 	if p1 == nil || p2 == nil {
 		return
 	}
@@ -58,7 +58,7 @@ func extractMatchMetrics(
 	if winnerSlot == nil {
 		return
 	}
-	winner := winnerSlot.Player()
+	winner := winnerSlot.player
 
 	m1, ok := metrics[p1]
 	if !ok {

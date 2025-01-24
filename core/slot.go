@@ -22,30 +22,12 @@ type Slot struct {
 	bye       *Bye
 }
 
-// Returns the player in this slot.
-// Returns nil if the slot is not (yet) occupied by a player.
-func (s *Slot) Player() Player {
-	return s.player
-}
-
-// Returns the placement of this slot.
-// Returns nil if the slot is directly filled by a player
-// or it's a bye slot.
-func (s *Slot) Placement() Placement {
-	return s.placement
-}
-
-// This returns nil when the Slot is not a bye.
-func (s *Slot) Bye() *Bye {
-	return s.bye
-}
-
-// Returns wheter this slot is an effective bye.
+// Returns whether this slot is an effective bye.
 //
 // Effective bye means it is also true when the
 // slot inherits a bye slot via placement
 func (s *Slot) IsBye() bool {
-	if s.Bye() != nil {
+	if s.bye != nil {
 		return true
 	}
 
@@ -79,7 +61,7 @@ func NewPlayerSlot(player Player) *Slot {
 
 func NewPlacementSlot(placement Placement) *Slot {
 	slot := &Slot{placement: placement}
-	placement.Ranking().AddDependantSlots(slot)
+	placement.Ranking().addDependantSlots(slot)
 	return slot
 }
 

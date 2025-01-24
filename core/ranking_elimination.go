@@ -46,7 +46,7 @@ func (r *EliminationRanking) updateRanks() {
 	entrySlots := r.Entries.Ranks()
 	occupiedEntrySlots := make([]*Slot, 0, len(entrySlots))
 	for _, s := range entrySlots {
-		if s.Player() != nil {
+		if s.player != nil {
 			occupiedEntrySlots = append(occupiedEntrySlots, s)
 		}
 	}
@@ -89,13 +89,13 @@ func rankMatch(match *Match) (*Slot, []*Slot) {
 
 	if winner == nil {
 		for s := range match.Slots {
-			if s.Player() != nil {
+			if s.player != nil {
 				losers = append(losers, s)
 			}
 		}
 	} else {
 		loser := match.OtherSlot(winner)
-		if loser != nil && loser.Player() != nil {
+		if loser != nil && loser.player != nil {
 			losers = append(losers, loser)
 		}
 	}
@@ -110,7 +110,7 @@ func RemoveDoubleRanks(ranks [][]*Slot) [][]*Slot {
 	for _, r := range ranks {
 		cleanedRank := make([]*Slot, 0, len(r))
 		for _, s := range r {
-			player := s.Player()
+			player := s.player
 			_, ok := found[player]
 			if !ok {
 				cleanedRank = append(cleanedRank, s)

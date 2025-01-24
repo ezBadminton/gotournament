@@ -27,7 +27,7 @@ func (r *WinnerRanking) updateRanks() {
 
 	loser := r.Match.OtherSlot(winner)
 
-	overrideDrawnBye := loser.Bye() != nil && loser.Bye().Drawn
+	overrideDrawnBye := loser.bye != nil && loser.bye.Drawn
 	if overrideDrawnBye {
 		loser = NewByeSlot(false)
 	}
@@ -54,8 +54,8 @@ func NewWinnerRanking(match *Match) *WinnerRanking {
 func (r *WinnerRanking) LinkRankingGraph(rankingGraph *RankingGraph, allowedLinks map[*Match]*WinnerRanking) {
 	rankingGraph.AddVertex(r)
 
-	placement1 := r.Match.Slot1.Placement()
-	placement2 := r.Match.Slot2.Placement()
+	placement1 := r.Match.Slot1.placement
+	placement2 := r.Match.Slot2.placement
 
 	if placement1 == nil || placement2 == nil {
 		return

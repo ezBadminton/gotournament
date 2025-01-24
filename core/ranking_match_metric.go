@@ -182,7 +182,7 @@ func createMatchMetricRanking(
 	players := make([]Player, 0, len(entrySlots))
 
 	for _, s := range entrySlots {
-		player := s.Player()
+		player := s.player
 		if player != nil {
 			players = append(players, player)
 		}

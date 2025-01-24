@@ -31,16 +31,16 @@ func TestDoubleEliminationRanking(t *testing.T) {
 	ranks = tournament.FinalRanking.TiedRanks()
 
 	eq1 = len(ranks) == 8
-	eq2 := ranks[0][0].Player() == players[0]
-	eq3 := ranks[1][0].Player() == players[1]
-	eq4 := ranks[2][0].Player() == players[3]
-	eq5 := ranks[3][0].Player() == players[2]
-	eq6 := ranks[4][0].Player() == players[6] && ranks[4][1].Player() == players[7]
-	eq7 := ranks[5][0].Player() == players[5] && ranks[5][1].Player() == players[4]
-	eq8 := ranks[6][0].Player() == players[15] && ranks[6][1].Player() == players[12]
-	eq9 := ranks[6][2].Player() == players[14] && ranks[6][3].Player() == players[13]
-	eq10 := ranks[7][0].Player() == players[8] && ranks[7][1].Player() == players[11]
-	eq11 := ranks[7][2].Player() == players[9] && ranks[7][3].Player() == players[10]
+	eq2 := ranks[0][0].player == players[0]
+	eq3 := ranks[1][0].player == players[1]
+	eq4 := ranks[2][0].player == players[3]
+	eq5 := ranks[3][0].player == players[2]
+	eq6 := ranks[4][0].player == players[6] && ranks[4][1].player == players[7]
+	eq7 := ranks[5][0].player == players[5] && ranks[5][1].player == players[4]
+	eq8 := ranks[6][0].player == players[15] && ranks[6][1].player == players[12]
+	eq9 := ranks[6][2].player == players[14] && ranks[6][3].player == players[13]
+	eq10 := ranks[7][0].player == players[8] && ranks[7][1].player == players[11]
+	eq11 := ranks[7][2].player == players[9] && ranks[7][3].player == players[10]
 	if !eq1 || !eq2 || !eq3 || !eq4 || !eq5 || !eq6 || !eq7 || !eq8 || !eq9 || !eq10 || !eq11 {
 		t.Fatal("The final ranking is not as expected after all matches finished")
 	}

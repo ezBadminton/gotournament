@@ -46,7 +46,7 @@ func (t *SingleElimination) initTournament(
 
 		if i == 0 {
 			for _, s := range entrySlots {
-				rankingGraph.AddEdge(balancedEntries, s.Placement().Ranking())
+				rankingGraph.AddEdge(balancedEntries, s.placement.Ranking())
 			}
 		} else {
 			lastRound := rounds[i-1]
