@@ -9,7 +9,7 @@ type ConstantRanking struct {
 // Updates the return value of the Ranks method.
 // Should be called whenever a result that influences the
 // ranking becomes known.
-func (r *ConstantRanking) UpdateRanks() {
+func (r *ConstantRanking) updateRanks() {
 	// No implementation because this is a constant ranking
 }
 

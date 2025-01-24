@@ -1,5 +1,11 @@
 package internal
 
+import "errors"
+
+var (
+	ErrTooFewEntries = errors.New("not enough entries for this tournament mode")
+)
+
 // A slice of matches and a slice of rounds containing all
 // matches.
 type MatchList struct {
@@ -62,7 +68,7 @@ type EditingPolicy interface {
 	EditableMatches() []*Match
 
 	// Updates the return value of EditableMatches
-	UpdateEditableMatches()
+	updateEditableMatches()
 }
 
 // A Tournament is a chain of matches and rankings.
@@ -98,13 +104,13 @@ func (t *BaseTournament[_]) Update(start Ranking) {
 
 	bfs := t.RankingGraph.BreadthSearchIter(start)
 	for ranking := range bfs {
-		ranking.UpdateRanks()
+		ranking.updateRanks()
 		for _, s := range ranking.DependantSlots() {
 			s.Update()
 		}
 	}
 
-	t.EditingPolicy.UpdateEditableMatches()
+	t.EditingPolicy.updateEditableMatches()
 }
 
 func (t *BaseTournament[_]) GetMatchList() *MatchList {
@@ -133,7 +139,7 @@ func (t *BaseTournament[_]) addPolicies(
 	t.WithdrawalPolicy = withdrawalPolicy
 }
 
-func NewBaseTournament[FinalRanking Ranking](entries Ranking) BaseTournament[FinalRanking] {
+func newBaseTournament[FinalRanking Ranking](entries Ranking) BaseTournament[FinalRanking] {
 	tournament := BaseTournament[FinalRanking]{
 		Entries: entries,
 		id:      NextNodeId(),

@@ -13,7 +13,7 @@ func TestGroupKnockoutStructure(t *testing.T) {
 	}
 
 	entries := NewConstantRanking(players)
-	tournament := NewGroupKnockout(
+	tournament, _ := NewGroupKnockout(
 		entries,
 		NewGroupKnockoutSingleElimination,
 		4,
@@ -47,7 +47,7 @@ func TestGroupKnockoutQualification(t *testing.T) {
 	}
 
 	entries := NewConstantRanking(players)
-	tournament := NewGroupKnockout(
+	tournament, _ := NewGroupKnockout(
 		entries,
 		SingleEliminationWithConsolationBuilder(0, 3),
 		4,
@@ -96,7 +96,7 @@ func TestGroupKnockoutUnbalancedQualifications(t *testing.T) {
 	}
 
 	entries := NewConstantRanking(players)
-	tournament := NewGroupKnockout(
+	tournament, _ := NewGroupKnockout(
 		entries,
 		NewGroupKnockoutSingleElimination,
 		3,
@@ -143,7 +143,7 @@ func TestGroupKnockoutContestedQualifications(t *testing.T) {
 	}
 
 	entries := NewConstantRanking(players)
-	tournament := NewGroupKnockout(
+	tournament, _ := NewGroupKnockout(
 		entries,
 		NewGroupKnockoutSingleElimination,
 		3,
@@ -182,7 +182,7 @@ func TestGroupKnockoutEditingPolicy(t *testing.T) {
 	}
 
 	entries := NewConstantRanking(players)
-	tournament := NewGroupKnockout(
+	tournament, _ := NewGroupKnockout(
 		entries,
 		NewGroupKnockoutSingleElimination,
 		2,
@@ -236,7 +236,7 @@ func TestGroupKnockoutWithdrawalPolicy(t *testing.T) {
 	}
 
 	entries := NewConstantRanking(players)
-	tournament := NewGroupKnockout(
+	tournament, _ := NewGroupKnockout(
 		entries,
 		NewGroupKnockoutSingleElimination,
 		2,

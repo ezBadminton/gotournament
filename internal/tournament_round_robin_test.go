@@ -40,7 +40,7 @@ func TestRoundRobin(t *testing.T) {
 
 	entries := NewConstantRanking(players)
 
-	tournament := NewRoundRobin(entries, 1, NewScore(21, 0))
+	tournament, _ := NewRoundRobin(entries, 1, NewScore(21, 0))
 
 	ml := tournament.MatchList
 	finalRanking := tournament.FinalRanking
@@ -119,7 +119,7 @@ func TestRoundRobinByes(t *testing.T) {
 	}
 
 	entries := NewConstantRanking(players)
-	tournament := NewRoundRobin(entries, 1, NewScore(21, 0))
+	tournament, _ := NewRoundRobin(entries, 1, NewScore(21, 0))
 
 	ml := tournament.MatchList
 	finalRanking := tournament.FinalRanking
@@ -157,7 +157,7 @@ func TestRoundRobinWithdrawal(t *testing.T) {
 	}
 
 	entries := NewConstantRanking(players)
-	tournament := NewRoundRobin(entries, 1, NewScore(21, 0))
+	tournament, _ := NewRoundRobin(entries, 1, NewScore(21, 0))
 
 	finalRanking := tournament.FinalRanking
 
@@ -218,7 +218,7 @@ func TestRoundRobinEditing(t *testing.T) {
 	}
 
 	entries := NewConstantRanking(players)
-	tournament := NewRoundRobin(entries, 1, NewScore(21, 0))
+	tournament, _ := NewRoundRobin(entries, 1, NewScore(21, 0))
 
 	ml := tournament.MatchList
 	ep := tournament.EditingPolicy
@@ -232,7 +232,7 @@ func TestRoundRobinEditing(t *testing.T) {
 	ml.Matches[1].StartMatch()
 	ml.Matches[1].EndMatch(NewScore(1, 0))
 
-	ep.UpdateEditableMatches()
+	ep.updateEditableMatches()
 	editableMatches = ep.EditableMatches()
 
 	eq1 = len(editableMatches) == 1 && editableMatches[0] == ml.Matches[1]
@@ -252,7 +252,7 @@ func TestRoundRobinTies(t *testing.T) {
 	p3 := players[2]
 
 	entries := NewConstantRanking(players)
-	tournament := NewRoundRobin(entries, 1, NewScore(1, 0))
+	tournament, _ := NewRoundRobin(entries, 1, NewScore(1, 0))
 
 	// 2-1 2-0 0-2
 	matches := tournament.MatchList.Matches
@@ -272,7 +272,7 @@ func TestRoundRobinTies(t *testing.T) {
 	}
 
 	finalRanking.AddTieBreaker(entries)
-	finalRanking.UpdateRanks()
+	finalRanking.updateRanks()
 	ranks = finalRanking.TiedRanks()
 
 	eq1 = len(ranks) == 3
@@ -283,7 +283,7 @@ func TestRoundRobinTies(t *testing.T) {
 		t.Fatal("The tie breaker did not break the tie in the right order")
 	}
 
-	tournament = NewRoundRobin(entries, 2, NewScore(1, 0))
+	tournament, _ = NewRoundRobin(entries, 2, NewScore(1, 0))
 	matches = tournament.MatchList.Matches
 	finalRanking = tournament.FinalRanking
 
@@ -344,7 +344,7 @@ func TestRoundRobinTies(t *testing.T) {
 		t.Fatal(err)
 	}
 	entries = NewConstantRanking(players)
-	tournament = NewRoundRobin(entries, 2, NewScore(1, 0))
+	tournament, _ = NewRoundRobin(entries, 2, NewScore(1, 0))
 	matches = tournament.MatchList.Matches
 	finalRanking = tournament.FinalRanking
 

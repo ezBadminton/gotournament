@@ -9,7 +9,7 @@ type GroupPhase struct {
 	Groups []*RoundRobin
 }
 
-func (t *GroupPhase) InitTournament(
+func (t *GroupPhase) initTournament(
 	entries Ranking,
 	numGroups, numQualifications int,
 	walkoverScore Score,
@@ -27,7 +27,10 @@ func (t *GroupPhase) InitTournament(
 
 	for _, slots := range slotGroups {
 		groupEntries := NewSlotRanking(slots)
-		roundRobin := NewGroupRoundRobin(groupEntries, qualsPerGroup, walkoverScore, rankingGraph)
+		roundRobin, err := newGroupRoundRobin(groupEntries, qualsPerGroup, walkoverScore, rankingGraph)
+		if err != nil {
+			panic("could not get new group round robin")
+		}
 		rankingGraph.AddEdge(entries, groupEntries)
 		t.Groups = append(t.Groups, roundRobin)
 	}
@@ -152,16 +155,16 @@ func directionalSeq[V any](slice []V, direction bool) iter.Seq2[int, V] {
 	return iterator
 }
 
-func NewGroupPhase(
+func newGroupPhase(
 	entries Ranking,
 	numGroups, numQualifications int,
 	walkoverScore Score,
 	rankingGraph *RankingGraph,
 ) *GroupPhase {
 	groupPhase := &GroupPhase{
-		BaseTournament: NewBaseTournament[*GroupPhaseRanking](entries),
+		BaseTournament: newBaseTournament[*GroupPhaseRanking](entries),
 	}
-	groupPhase.InitTournament(
+	groupPhase.initTournament(
 		entries,
 		numGroups,
 		numQualifications,

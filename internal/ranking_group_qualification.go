@@ -12,7 +12,7 @@ type GroupQualificationRanking struct {
 	placements []*BlockingPlacement
 }
 
-func (r *GroupQualificationRanking) UpdateRanks() {
+func (r *GroupQualificationRanking) updateRanks() {
 	seeds := r.arrangeKnockOutSeeds()
 
 	for i, placement := range r.placements {
@@ -268,7 +268,7 @@ func NewGroupQualificationRanking(source *GroupPhaseRanking, rankingGraph *Ranki
 		placements:  placements,
 	}
 	ranking.AddDependantSlots(slots...)
-	ranking.UpdateRanks()
+	ranking.updateRanks()
 
 	rankingGraph.AddVertex(ranking)
 	rankingGraph.AddEdge(source, ranking)

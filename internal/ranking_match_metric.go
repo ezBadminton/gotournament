@@ -22,7 +22,7 @@ type MatchMetricRanking struct {
 	walkoverScore Score
 }
 
-func (r *MatchMetricRanking) UpdateRanks() {
+func (r *MatchMetricRanking) updateRanks() {
 	metrics := CreateMetrics(r.matches, nil, r.walkoverScore)
 	addZeroMetrics(metrics, r.players)
 
@@ -195,7 +195,7 @@ func createMatchMetricRanking(
 		matches:            matches,
 		walkoverScore:      walkoverScore,
 	}
-	ranking.UpdateRanks()
+	ranking.updateRanks()
 
 	if rankingGraph != nil {
 		rankingGraph.AddVertex(ranking)

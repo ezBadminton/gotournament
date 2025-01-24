@@ -13,7 +13,7 @@ func TestDoubleEliminationRanking(t *testing.T) {
 	}
 
 	entries := NewConstantRanking(players)
-	tournament := NewDoubleElimination(entries)
+	tournament, _ := NewDoubleElimination(entries)
 
 	ranks := tournament.FinalRanking.TiedRanks()
 
@@ -53,7 +53,7 @@ func TestDoubleEliminationEditingPolicy(t *testing.T) {
 	}
 
 	entries := NewConstantRanking(players)
-	tournament := NewDoubleElimination(entries)
+	tournament, _ := NewDoubleElimination(entries)
 
 	editableMatches := tournament.EditableMatches()
 
@@ -111,7 +111,7 @@ func TestDoubleEliminationWithdrawalPolicy(t *testing.T) {
 	}
 
 	entries := NewConstantRanking(players)
-	tournament := NewDoubleElimination(entries)
+	tournament, _ := NewDoubleElimination(entries)
 
 	m1 := tournament.Matches[0]
 	m2 := tournament.Rounds[1].Matches[0]

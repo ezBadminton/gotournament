@@ -15,7 +15,7 @@ type GroupPhaseRanking struct {
 	QualificationComplete bool
 }
 
-func (r *GroupPhaseRanking) UpdateRanks() {
+func (r *GroupPhaseRanking) updateRanks() {
 	numGroups := len(r.groups)
 
 	groupRankings := make([]*MatchMetricRanking, 0, numGroups)

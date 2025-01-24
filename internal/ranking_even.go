@@ -8,7 +8,7 @@ type EvenRanking struct {
 	sourceRanking Ranking
 }
 
-func (r *EvenRanking) UpdateRanks() {
+func (r *EvenRanking) updateRanks() {
 	sourceRanks := r.sourceRanking.GetRanks()
 
 	if len(sourceRanks)%2 != 0 {
@@ -22,7 +22,7 @@ func (r *EvenRanking) UpdateRanks() {
 func NewEvenRanking(source Ranking, rankingGraph *RankingGraph) *EvenRanking {
 	baseRanking := NewBaseRanking()
 	ranking := &EvenRanking{BaseRanking: baseRanking, sourceRanking: source}
-	ranking.UpdateRanks()
+	ranking.updateRanks()
 
 	rankingGraph.AddVertex(ranking)
 	rankingGraph.AddEdge(source, ranking)

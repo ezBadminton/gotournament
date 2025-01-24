@@ -17,7 +17,7 @@ type EliminationRanking struct {
 // Updates the return value of the GetRanks() method.
 // Should be called whenever a result that influences the
 // ranking becomes known.
-func (r *EliminationRanking) UpdateRanks() {
+func (r *EliminationRanking) updateRanks() {
 	rounds := make([]*Round, 0, len(r.MatchList.Rounds))
 
 	for _, r := range r.MatchList.Rounds {

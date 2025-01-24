@@ -8,7 +8,7 @@ type SingleElimination struct {
 	WinnerRankings   map[*Match]*WinnerRanking
 }
 
-func (t *SingleElimination) InitTournament(
+func (t *SingleElimination) initTournament(
 	entries Ranking,
 	seeded bool,
 	rankingGraph *RankingGraph,
@@ -222,7 +222,7 @@ func (e *EliminationEditingPolicy) EditableMatches() []*Match {
 }
 
 // Updates the return value of EditableMatches
-func (e *EliminationEditingPolicy) UpdateEditableMatches() {
+func (e *EliminationEditingPolicy) updateEditableMatches() {
 	matches := e.matchList.Matches
 	editable := make([]*Match, 0, len(matches))
 
@@ -321,12 +321,16 @@ func (e *EliminationWithdrawalPolicy) ReenterPlayer(player Player) []*Match {
 	return reenteredMatches
 }
 
-func createSingleElimination(entries Ranking, seeded bool, rankingGraph *RankingGraph) *SingleElimination {
-	singleElimination := &SingleElimination{
-		BaseTournament: NewBaseTournament[*EliminationRanking](entries),
+func createSingleElimination(entries Ranking, seeded bool, rankingGraph *RankingGraph) (*SingleElimination, error) {
+	if len(entries.GetRanks()) < 2 {
+		return nil, ErrTooFewEntries
 	}
 
-	singleElimination.InitTournament(
+	singleElimination := &SingleElimination{
+		BaseTournament: newBaseTournament[*EliminationRanking](entries),
+	}
+
+	singleElimination.initTournament(
 		entries,
 		seeded,
 		rankingGraph,
@@ -349,17 +353,18 @@ func createSingleElimination(entries Ranking, seeded bool, rankingGraph *Ranking
 
 	singleElimination.Update(nil)
 
-	return singleElimination
+	return singleElimination, nil
 }
 
-func NewSingleElimination(entries Ranking) *SingleElimination {
+func NewSingleElimination(entries Ranking) (*SingleElimination, error) {
 	return createSingleElimination(entries, true, nil)
 }
 
-func NewConsolationElimination(entries Ranking, rankingGraph *RankingGraph) *SingleElimination {
+func newConsolationElimination(entries Ranking, rankingGraph *RankingGraph) (*SingleElimination, error) {
 	return createSingleElimination(entries, false, rankingGraph)
 }
 
-func NewGroupKnockoutSingleElimination(entries Ranking, rankingGraph *RankingGraph) *BaseTournament[*EliminationRanking] {
-	return &createSingleElimination(entries, true, rankingGraph).BaseTournament
+func NewGroupKnockoutSingleElimination(entries Ranking, rankingGraph *RankingGraph) (*BaseTournament[*EliminationRanking], error) {
+	tournament, err := createSingleElimination(entries, true, rankingGraph)
+	return &tournament.BaseTournament, err
 }

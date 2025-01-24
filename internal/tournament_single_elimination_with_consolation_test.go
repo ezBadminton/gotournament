@@ -39,7 +39,7 @@ func TestConsolationBrackets(t *testing.T) {
 	}
 
 	entries := NewConstantRanking(players)
-	tournament := NewSingleEliminationWithConsolation(entries, 0, 16)
+	tournament, _ := NewSingleEliminationWithConsolation(entries, 0, 16)
 
 	brackets := tournament.Brackets
 
@@ -61,7 +61,7 @@ func TestConsolationBrackets(t *testing.T) {
 		t.Fatal("The consolation brackets do not have a descending amount of rounds")
 	}
 
-	tournament = NewSingleEliminationWithConsolation(entries, 0, 15)
+	tournament, _ = NewSingleEliminationWithConsolation(entries, 0, 15)
 	brackets = tournament.Brackets
 
 	eq1 = len(brackets) == 8
@@ -69,7 +69,7 @@ func TestConsolationBrackets(t *testing.T) {
 		t.Fatal("The tournament with 15 places to play out does not have the expected amount of brackets")
 	}
 
-	tournament = NewSingleEliminationWithConsolation(entries, 0, 14)
+	tournament, _ = NewSingleEliminationWithConsolation(entries, 0, 14)
 	brackets = tournament.Brackets
 
 	eq1 = len(brackets) == 7
@@ -81,7 +81,7 @@ func TestConsolationBrackets(t *testing.T) {
 		t.Fatal("The tournament does not have 7 finals")
 	}
 
-	tournament = NewSingleEliminationWithConsolation(entries, 1, 0)
+	tournament, _ = NewSingleEliminationWithConsolation(entries, 1, 0)
 	brackets = tournament.Brackets
 
 	eq1 = len(brackets) == 4
@@ -89,7 +89,7 @@ func TestConsolationBrackets(t *testing.T) {
 		t.Fatal("The tournament with 1 consolation round does not have the expected amount of brackets")
 	}
 
-	tournament = NewSingleEliminationWithConsolation(entries, 1, 8)
+	tournament, _ = NewSingleEliminationWithConsolation(entries, 1, 8)
 	brackets = tournament.Brackets
 
 	eq1 = len(brackets) == 5
@@ -103,7 +103,7 @@ func TestConsolationBrackets(t *testing.T) {
 	}
 
 	entries = NewConstantRanking(players)
-	tournament = NewSingleEliminationWithConsolation(entries, 0, 8)
+	tournament, _ = NewSingleEliminationWithConsolation(entries, 0, 8)
 	brackets = tournament.Brackets
 
 	eq1 = len(brackets) == 3
@@ -119,7 +119,7 @@ func TestConsolationGraphs(t *testing.T) {
 	}
 
 	entries := NewConstantRanking(players)
-	tournament := NewSingleEliminationWithConsolation(entries, 0, 16)
+	tournament, _ := NewSingleEliminationWithConsolation(entries, 0, 16)
 
 	brackets := tournament.Brackets
 	mainBracket := brackets[0]
@@ -166,7 +166,7 @@ func TestConsolationRanking(t *testing.T) {
 	}
 
 	entries := NewConstantRanking(players)
-	tournament := NewSingleEliminationWithConsolation(entries, 0, 4)
+	tournament, _ := NewSingleEliminationWithConsolation(entries, 0, 4)
 
 	matchList := tournament.MatchList
 	finalRanking := tournament.FinalRanking
@@ -215,7 +215,7 @@ func TestConsolationWithdrawal(t *testing.T) {
 	}
 
 	entries := NewConstantRanking(players)
-	tournament := NewSingleEliminationWithConsolation(entries, 0, 8)
+	tournament, _ := NewSingleEliminationWithConsolation(entries, 0, 8)
 
 	ml := tournament.MatchList
 	brackets := tournament.Brackets
@@ -281,7 +281,7 @@ func TestConsolationEditingPolicy(t *testing.T) {
 	}
 
 	entries := NewConstantRanking(players)
-	tournament := NewSingleEliminationWithConsolation(entries, 0, 8)
+	tournament, _ := NewSingleEliminationWithConsolation(entries, 0, 8)
 
 	ml := tournament.MatchList
 	ep := tournament.EditingPolicy
@@ -311,7 +311,7 @@ func TestConsolationEditingPolicy(t *testing.T) {
 	}
 
 	semi1.StartMatch()
-	ep.UpdateEditableMatches()
+	ep.updateEditableMatches()
 
 	editableMatches = ep.EditableMatches()
 

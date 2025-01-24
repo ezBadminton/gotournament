@@ -18,7 +18,7 @@ type Ranking interface {
 	// Updates the return value of the GetRanks() method.
 	// Should be called whenever a result that influences the
 	// ranking becomes known.
-	UpdateRanks()
+	updateRanks()
 
 	// All slots that resolve their qualification from this
 	// ranking are added here.
@@ -47,7 +47,7 @@ func (r *BaseRanking) At(i int) *Slot {
 	return r.Ranks[i]
 }
 
-func (r *BaseRanking) UpdateRanks() {}
+func (r *BaseRanking) updateRanks() {}
 
 func (r *BaseRanking) AddDependantSlots(slots ...*Slot) {
 	r.dependantSlots = append(r.dependantSlots, slots...)

@@ -24,14 +24,17 @@ type SingleEliminationWithConsolation struct {
 	EliminationGraph *EliminationGraph
 }
 
-func (t *SingleEliminationWithConsolation) InitTournament(
+func (t *SingleEliminationWithConsolation) initTournament(
 	entries Ranking,
 	numConsolationRounds, placesToPlayOut int,
 	rankingGraph *RankingGraph,
 ) {
 	t.Brackets = make([]*ConsolationBracket, 0, 16)
 
-	mainElimination := createSingleElimination(entries, true, rankingGraph)
+	mainElimination, err := createSingleElimination(entries, true, rankingGraph)
+	if err != nil {
+		panic("could not create main elimination")
+	}
 	t.MainBracket = newBracket(mainElimination)
 	t.RankingGraph = mainElimination.RankingGraph
 	t.EliminationGraph = mainElimination.EliminationGraph
@@ -123,7 +126,10 @@ func (t *SingleEliminationWithConsolation) createBracketFromRound(
 	}
 
 	consolationEntries := NewSlotRanking(losers)
-	consolationElimination := NewConsolationElimination(consolationEntries, t.RankingGraph)
+	consolationElimination, err := newConsolationElimination(consolationEntries, t.RankingGraph)
+	if err != nil {
+		panic("could not create consolation bracket")
+	}
 	consolationBracket := newBracket(consolationElimination)
 
 	for _, r := range winnerRankings {
@@ -230,11 +236,15 @@ func createSingleEliminationWithConsolation(
 	entries Ranking,
 	numConsolationRounds, placesToPlayOut int,
 	rankingGraph *RankingGraph,
-) *SingleEliminationWithConsolation {
-	consolationTournament := &SingleEliminationWithConsolation{
-		BaseTournament: NewBaseTournament[*EliminationRanking](entries),
+) (*SingleEliminationWithConsolation, error) {
+	if len(entries.GetRanks()) < 2 {
+		return nil, ErrTooFewEntries
 	}
-	consolationTournament.InitTournament(
+
+	consolationTournament := &SingleEliminationWithConsolation{
+		BaseTournament: newBaseTournament[*EliminationRanking](entries),
+	}
+	consolationTournament.initTournament(
 		entries,
 		numConsolationRounds,
 		placesToPlayOut,
@@ -258,13 +268,13 @@ func createSingleEliminationWithConsolation(
 
 	consolationTournament.Update(nil)
 
-	return consolationTournament
+	return consolationTournament, nil
 }
 
 func NewSingleEliminationWithConsolation(
 	entries Ranking,
 	numConsolationRounds, placesToPlayOut int,
-) *SingleEliminationWithConsolation {
+) (*SingleEliminationWithConsolation, error) {
 	return createSingleEliminationWithConsolation(
 		entries,
 		numConsolationRounds,
@@ -276,13 +286,15 @@ func NewSingleEliminationWithConsolation(
 func SingleEliminationWithConsolationBuilder(
 	numConsolationRounds, placesToPlayOut int,
 ) KnockoutBuilder {
-	builder := func(entries Ranking, rankingGraph *RankingGraph) *BaseTournament[*EliminationRanking] {
-		return &createSingleEliminationWithConsolation(
+	builder := func(entries Ranking, rankingGraph *RankingGraph) (*BaseTournament[*EliminationRanking], error) {
+		tournament, err := createSingleEliminationWithConsolation(
 			entries,
 			numConsolationRounds,
 			placesToPlayOut,
 			rankingGraph,
-		).BaseTournament
+		)
+
+		return &tournament.BaseTournament, err
 	}
 
 	return builder

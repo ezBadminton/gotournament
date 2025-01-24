@@ -13,7 +13,7 @@ func TestGroupSeeding(t *testing.T) {
 
 	entries := NewConstantRanking(players)
 	rankingGraph := NewRankingGraph(entries)
-	tournament := NewGroupPhase(entries, 4, 3, NewScore(21, 0), rankingGraph)
+	tournament := newGroupPhase(entries, 4, 3, NewScore(21, 0), rankingGraph)
 
 	groups := tournament.Groups
 
@@ -53,7 +53,7 @@ func TestGroupSeeding(t *testing.T) {
 
 	entries = NewConstantRanking(players)
 	rankingGraph = NewRankingGraph(entries)
-	tournament = NewGroupPhase(entries, 4, 4, NewScore(21, 0), rankingGraph)
+	tournament = newGroupPhase(entries, 4, 4, NewScore(21, 0), rankingGraph)
 
 	groups = tournament.Groups
 
@@ -85,7 +85,7 @@ func TestGroupPhaseRanking(t *testing.T) {
 
 	entries := NewConstantRanking(players)
 	rankingGraph := NewRankingGraph(entries)
-	tournament := NewGroupPhase(entries, 3, 6, NewScore(1, 0), rankingGraph)
+	tournament := newGroupPhase(entries, 3, 6, NewScore(1, 0), rankingGraph)
 
 	finalRanking := tournament.FinalRanking
 
@@ -167,7 +167,7 @@ func TestCrossGroupTies(t *testing.T) {
 
 	entries := NewConstantRanking(players)
 	rankingGraph := NewRankingGraph(entries)
-	tournament := NewGroupPhase(entries, 3, 5, NewScore(1, 0), rankingGraph)
+	tournament := newGroupPhase(entries, 3, 5, NewScore(1, 0), rankingGraph)
 
 	ml := tournament.MatchList
 	finalRanking := tournament.FinalRanking
@@ -216,7 +216,7 @@ func TestCrossGroupTies(t *testing.T) {
 	}
 
 	finalRanking.AddTieBreaker(NewConstantRanking([]Player{players[5], players[3]}))
-	finalRanking.UpdateRanks()
+	finalRanking.updateRanks()
 	crossTies = finalRanking.CrossGroupTies()
 
 	eq1 = len(crossTies) == 0
@@ -234,7 +234,7 @@ func TestGroupPhaseWithdrawal(t *testing.T) {
 	entries := NewConstantRanking(players)
 	rankingGraph := NewRankingGraph(entries)
 	walkoverScore := NewScore(42, 0)
-	tournament := NewGroupPhase(entries, 2, 6, walkoverScore, rankingGraph)
+	tournament := newGroupPhase(entries, 2, 6, walkoverScore, rankingGraph)
 
 	wp := tournament.WithdrawalPolicy
 	groupRankings := make([]*MatchMetricRanking, 0, 2)

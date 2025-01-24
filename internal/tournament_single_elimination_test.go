@@ -14,7 +14,7 @@ func TestSmallTournament(t *testing.T) {
 	}
 
 	entries := NewConstantRanking(players)
-	tournament := NewSingleElimination(entries)
+	tournament, _ := NewSingleElimination(entries)
 	winnerRankings := tournament.WinnerRankings
 
 	semi1 := tournament.MatchList.Matches[0]
@@ -32,7 +32,7 @@ func TestSmallTournament(t *testing.T) {
 	}
 
 	finalRanking := tournament.FinalRanking
-	finalRanking.UpdateRanks()
+	finalRanking.updateRanks()
 	if len(finalRanking.TiedRanks()) != 1 {
 		t.Fatal("The final ranking does not have one tied rank for all players")
 	}
@@ -116,7 +116,7 @@ func TestUnbalancedTournament(t *testing.T) {
 	}
 
 	entries := NewConstantRanking(players)
-	tournament := NewSingleElimination(entries)
+	tournament, _ := NewSingleElimination(entries)
 
 	quarter1 := tournament.MatchList.Matches[0]
 	quarter2 := tournament.MatchList.Matches[1]
@@ -158,7 +158,7 @@ func TestWithdrawal(t *testing.T) {
 	}
 
 	entries := NewConstantRanking(players)
-	tournament := NewSingleElimination(entries)
+	tournament, _ := NewSingleElimination(entries)
 
 	wp := tournament.WithdrawalPolicy
 	ml := tournament.MatchList
@@ -252,7 +252,7 @@ func TestWithdrawal(t *testing.T) {
 	}
 
 	entries = NewConstantRanking(players)
-	tournament = NewSingleElimination(entries)
+	tournament, _ = NewSingleElimination(entries)
 
 	wp = tournament.WithdrawalPolicy
 	ml = tournament.MatchList
@@ -309,12 +309,12 @@ func TestEditingPolicy(t *testing.T) {
 	}
 
 	entries := NewConstantRanking(players)
-	tournament := NewSingleElimination(entries)
+	tournament, _ := NewSingleElimination(entries)
 
 	ml := tournament.MatchList
 
 	ep := tournament.EditingPolicy
-	ep.UpdateEditableMatches()
+	ep.updateEditableMatches()
 
 	editableMatches := ep.EditableMatches()
 	eq1 := len(editableMatches) == 0
@@ -325,7 +325,7 @@ func TestEditingPolicy(t *testing.T) {
 	ml.Matches[0].StartMatch()
 	ml.Matches[0].EndMatch(NewScore(1, 0))
 	tournament.Update(nil)
-	ep.UpdateEditableMatches()
+	ep.updateEditableMatches()
 
 	editableMatches = ep.EditableMatches()
 	eq1 = ml.Matches[0] == editableMatches[0]
@@ -338,7 +338,7 @@ func TestEditingPolicy(t *testing.T) {
 		m.EndMatch(NewScore(1, 0))
 	}
 	tournament.Update(nil)
-	ep.UpdateEditableMatches()
+	ep.updateEditableMatches()
 
 	editableMatches = ep.EditableMatches()
 	eq1 = slices.Equal(editableMatches, ml.Rounds[0].Matches)
@@ -348,7 +348,7 @@ func TestEditingPolicy(t *testing.T) {
 
 	ml.Rounds[1].Matches[0].StartMatch()
 	tournament.Update(nil)
-	ep.UpdateEditableMatches()
+	ep.updateEditableMatches()
 
 	editableMatches = ep.EditableMatches()
 	eq1 = slices.Contains(editableMatches, ml.Rounds[0].Matches[0])

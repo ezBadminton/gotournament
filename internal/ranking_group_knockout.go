@@ -9,7 +9,7 @@ type GroupKnockoutRanking struct {
 	knockOut   *BaseTournament[*EliminationRanking]
 }
 
-func (r *GroupKnockoutRanking) UpdateRanks() {
+func (r *GroupKnockoutRanking) updateRanks() {
 	groups := r.groupPhase.Groups
 
 	groupRanks := make([][][]*Slot, 0, len(groups))
@@ -47,7 +47,7 @@ func NewGroupKnockoutRanking(groupPhase *GroupPhase, knockOut *BaseTournament[*E
 		groupPhase:         groupPhase,
 		knockOut:           knockOut,
 	}
-	ranking.UpdateRanks()
+	ranking.updateRanks()
 
 	return ranking
 }

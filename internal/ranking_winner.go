@@ -13,7 +13,7 @@ type WinnerRanking struct {
 // Updates the return value of the GetRanks() method.
 // Should be called whenever a result that influences the
 // ranking becomes known.
-func (r *WinnerRanking) UpdateRanks() {
+func (r *WinnerRanking) updateRanks() {
 	winner, err := r.Match.GetWinner()
 	if err == ErrBothBye || err == ErrBothWalkover || err == ErrByeAndWalkover {
 		byeSlot := NewByeSlot(false)

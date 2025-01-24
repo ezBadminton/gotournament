@@ -13,11 +13,15 @@ type DoubleElimination struct {
 	final       *Match
 }
 
-func (t *DoubleElimination) InitTournament(
+func (t *DoubleElimination) initTournament(
 	entries Ranking,
 	rankingGraph *RankingGraph,
 ) {
-	t.WinnerBracket = createSingleElimination(entries, true, rankingGraph)
+	winnerBracket, err := createSingleElimination(entries, true, rankingGraph)
+	if err != nil {
+		panic("could not create winner bracket")
+	}
+	t.WinnerBracket = winnerBracket
 	t.RankingGraph = t.WinnerBracket.RankingGraph
 	t.EliminationGraph = t.WinnerBracket.EliminationGraph
 	t.WinnerRankings = t.WinnerBracket.WinnerRankings
@@ -160,11 +164,15 @@ func swapHalves[S ~[]E, E any](s S) {
 	}
 }
 
-func createDoubleElimination(entries Ranking, rankingGraph *RankingGraph) *DoubleElimination {
-	doubleElimination := &DoubleElimination{
-		BaseTournament: NewBaseTournament[*EliminationRanking](entries),
+func createDoubleElimination(entries Ranking, rankingGraph *RankingGraph) (*DoubleElimination, error) {
+	if len(entries.GetRanks()) < 2 {
+		return nil, ErrTooFewEntries
 	}
-	doubleElimination.InitTournament(entries, rankingGraph)
+
+	doubleElimination := &DoubleElimination{
+		BaseTournament: newBaseTournament[*EliminationRanking](entries),
+	}
+	doubleElimination.initTournament(entries, rankingGraph)
 
 	matchList := doubleElimination.MatchList
 	eliminationGraph := doubleElimination.EliminationGraph
@@ -182,13 +190,13 @@ func createDoubleElimination(entries Ranking, rankingGraph *RankingGraph) *Doubl
 	doubleElimination.addPolicies(editingPolicy, withdrawalPolicy)
 	doubleElimination.Update(nil)
 
-	return doubleElimination
+	return doubleElimination, nil
 }
 
-func NewDoubleElimination(entries Ranking) *DoubleElimination {
+func NewDoubleElimination(entries Ranking) (*DoubleElimination, error) {
 	return createDoubleElimination(entries, nil)
 }
 
-func NewGroupKnockoutDoubleElimination(entries Ranking, rankingGraph *RankingGraph) *DoubleElimination {
+func NewGroupKnockoutDoubleElimination(entries Ranking, rankingGraph *RankingGraph) (*DoubleElimination, error) {
 	return createDoubleElimination(entries, rankingGraph)
 }

@@ -1,8 +1,17 @@
 package internal
 
-import "slices"
+import (
+	"errors"
+	"slices"
+)
 
-type KnockoutBuilder func(entries Ranking, rankingGraph *RankingGraph) *BaseTournament[*EliminationRanking]
+var (
+	ErrTooFewGroups  = errors.New("the number of groups has to be at least 1")
+	ErrTooManyGroups = errors.New("the number of groups is too large for the amount of entries")
+	ErrTooFewQuals   = errors.New("the number of qualifications has to be at least 2")
+)
+
+type KnockoutBuilder func(entries Ranking, rankingGraph *RankingGraph) (*BaseTournament[*EliminationRanking], error)
 
 type GroupKnockout struct {
 	BaseTournament[*GroupKnockoutRanking]
@@ -10,7 +19,7 @@ type GroupKnockout struct {
 	knockOut   *BaseTournament[*EliminationRanking]
 }
 
-func (t *GroupKnockout) InitTournament(
+func (t *GroupKnockout) initTournament(
 	entries Ranking,
 	knockoutBuilder KnockoutBuilder,
 	numGroups, numQualifications int,
@@ -18,12 +27,16 @@ func (t *GroupKnockout) InitTournament(
 ) {
 	rankingGraph := NewRankingGraph(entries)
 
-	t.groupPhase = NewGroupPhase(entries, numGroups, numQualifications, walkoverScore, rankingGraph)
+	t.groupPhase = newGroupPhase(entries, numGroups, numQualifications, walkoverScore, rankingGraph)
 
 	groupPhaseRanking := t.groupPhase.FinalRanking
 	qualificationRanking := NewGroupQualificationRanking(groupPhaseRanking, rankingGraph)
 
-	t.knockOut = knockoutBuilder(qualificationRanking, rankingGraph)
+	knockOut, err := knockoutBuilder(qualificationRanking, rankingGraph)
+	if err != nil {
+		panic("could not create knock out")
+	}
+	t.knockOut = knockOut
 
 	matchList := t.createMatchList()
 
@@ -50,13 +63,13 @@ type GroupKnockoutEditingPolicy struct {
 	knockOut        *BaseTournament[*EliminationRanking]
 }
 
-func (e *GroupKnockoutEditingPolicy) UpdateEditableMatches() {
+func (e *GroupKnockoutEditingPolicy) updateEditableMatches() {
 	knockOutStarted := e.knockOut.MatchList.MatchesStarted()
 	if knockOutStarted {
-		e.knockOut.UpdateEditableMatches()
+		e.knockOut.updateEditableMatches()
 		e.editableMatches = e.knockOut.EditableMatches()
 	} else {
-		e.groupPhase.UpdateEditableMatches()
+		e.groupPhase.updateEditableMatches()
 		e.editableMatches = e.groupPhase.EditableMatches()
 	}
 }
@@ -93,11 +106,23 @@ func NewGroupKnockout(
 	knockoutBuilder KnockoutBuilder,
 	numGroups, numQualifications int,
 	walkoverScore Score,
-) *GroupKnockout {
-	groupKnockout := &GroupKnockout{
-		BaseTournament: NewBaseTournament[*GroupKnockoutRanking](entries),
+) (*GroupKnockout, error) {
+	numEntries := len(entries.GetRanks())
+
+	if numEntries < 2 {
+		return nil, ErrTooFewEntries
 	}
-	groupKnockout.InitTournament(
+	if numGroups < 1 {
+		return nil, ErrTooFewGroups
+	}
+	if 2*numGroups > numEntries {
+		return nil, ErrTooManyGroups
+	}
+
+	groupKnockout := &GroupKnockout{
+		BaseTournament: newBaseTournament[*GroupKnockoutRanking](entries),
+	}
+	groupKnockout.initTournament(
 		entries,
 		knockoutBuilder,
 		numGroups,
@@ -119,5 +144,5 @@ func NewGroupKnockout(
 
 	groupKnockout.Update(nil)
 
-	return groupKnockout
+	return groupKnockout, nil
 }
