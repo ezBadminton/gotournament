@@ -3,7 +3,7 @@ package badminton
 import (
 	"errors"
 
-	"github.com/ezBadminton/gotournament/internal"
+	"github.com/ezBadminton/gotournament/core"
 )
 
 var (
@@ -89,7 +89,7 @@ func (s *score) GetWinner() (int, error) {
 	return -1, ErrUndetermined
 }
 
-func (s *score) Invert() internal.Score {
+func (s *score) Invert() core.Score {
 	score := &score{
 		a: s.b,
 		b: s.a,
