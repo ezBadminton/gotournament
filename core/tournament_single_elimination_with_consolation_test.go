@@ -187,8 +187,8 @@ func TestConsolationRanking(t *testing.T) {
 
 	eq1 := len(ranks) == 3
 	eq2 := len(ranks[0]) == 2 && len(ranks[1]) == 1 && len(ranks[2]) == 1
-	eq3 := ranks[0][0].player == players[0] && ranks[0][1].player == players[1]
-	eq4 := ranks[1][0].player == players[3] && ranks[2][0].player == players[2]
+	eq3 := ranks[0][0].Player == players[0] && ranks[0][1].Player == players[1]
+	eq4 := ranks[1][0].Player == players[3] && ranks[2][0].Player == players[2]
 	if !eq1 || !eq2 || !eq3 || !eq4 {
 		t.Fatal("The finalists are not tied for first and/or the players in the loser final are not ranked correctly")
 	}
@@ -199,10 +199,10 @@ func TestConsolationRanking(t *testing.T) {
 	ranks = finalRanking.TiedRanks()
 
 	eq1 = len(ranks) == 4
-	eq2 = ranks[0][0].player == players[0]
-	eq3 = ranks[1][0].player == players[1]
-	eq4 = ranks[2][0].player == players[3]
-	eq5 := ranks[3][0].player == players[2]
+	eq2 = ranks[0][0].Player == players[0]
+	eq3 = ranks[1][0].Player == players[1]
+	eq4 = ranks[2][0].Player == players[3]
+	eq5 := ranks[3][0].Player == players[2]
 	if !eq1 || !eq2 || !eq3 || !eq4 || !eq5 {
 		t.Fatal("The final ranking of the tournament is unexpected")
 	}
@@ -222,7 +222,7 @@ func TestConsolationWithdrawal(t *testing.T) {
 
 	semi1 := ml.Rounds[1].Matches[0]
 
-	eq1 := semi1.Slot1.player == players[0]
+	eq1 := semi1.Slot1.Player == players[0]
 	if !eq1 {
 		t.Fatal("The first seed player did not advance to the next round")
 	}

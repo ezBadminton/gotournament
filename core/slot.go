@@ -17,9 +17,10 @@ package core
 // when a player withdraws from the tournament their slot
 // goes from actual player to bye).
 type Slot struct {
-	player    Player
-	placement Placement
-	bye       *Bye
+	Player    Player
+	Placement Placement
+	Bye       *Bye
+	Id        int
 }
 
 // Returns whether this slot is an effective bye.
@@ -27,12 +28,12 @@ type Slot struct {
 // Effective bye means it is also true when the
 // slot inherits a bye slot via placement
 func (s *Slot) IsBye() bool {
-	if s.bye != nil {
+	if s.Bye != nil {
 		return true
 	}
 
-	if s.placement != nil && s.placement.Slot() != nil {
-		return s.placement.Slot().IsBye()
+	if s.Placement != nil && s.Placement.Slot() != nil {
+		return s.Placement.Slot().IsBye()
 	}
 
 	return false
@@ -44,30 +45,30 @@ func (s *Slot) IsBye() bool {
 // in the ranking's list of dependant slots
 // [Ranking.GetDependantSlots].
 func (s *Slot) Update() {
-	if s.placement == nil || s.bye != nil {
+	if s.Placement == nil || s.Bye != nil {
 		return
 	}
-	slot := s.placement.Slot()
+	slot := s.Placement.Slot()
 	if slot == nil {
-		s.player = nil
+		s.Player = nil
 		return
 	}
-	s.player = slot.player
+	s.Player = slot.Player
 }
 
 func NewPlayerSlot(player Player) *Slot {
-	return &Slot{player: player}
+	return &Slot{Player: player, Id: NextId()}
 }
 
 func NewPlacementSlot(placement Placement) *Slot {
-	slot := &Slot{placement: placement}
+	slot := &Slot{Placement: placement, Id: NextId()}
 	placement.Ranking().addDependantSlots(slot)
 	return slot
 }
 
 func NewByeSlot(drawn bool) *Slot {
 	bye := &Bye{Drawn: drawn}
-	return &Slot{bye: bye}
+	return &Slot{Bye: bye, Id: NextId()}
 }
 
 // A Player is either a person or a team who is

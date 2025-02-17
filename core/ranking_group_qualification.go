@@ -102,7 +102,7 @@ func (r *GroupQualificationRanking) createGroupQualifications() []*groupQualific
 
 	for i, slot := range contestedSlots {
 		group := i
-		if slot.player != nil {
+		if slot.Player != nil {
 			group = r.groupOfSlot(slot)
 			if group == -1 {
 				panic("Could not find slot in the groups")

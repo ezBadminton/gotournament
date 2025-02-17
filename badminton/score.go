@@ -56,6 +56,8 @@ func NewScoreSettings(
 	return scoreSettings, nil
 }
 
+var _ core.Score = (*score)(nil)
+
 type score struct {
 	a, b []int
 }

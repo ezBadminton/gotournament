@@ -46,7 +46,7 @@ func (t *SingleElimination) initTournament(
 
 		if i == 0 {
 			for _, s := range entrySlots {
-				rankingGraph.AddEdge(balancedEntries, s.placement.Ranking())
+				rankingGraph.AddEdge(balancedEntries, s.Placement.Ranking())
 			}
 		} else {
 			lastRound := rounds[i-1]
@@ -369,7 +369,7 @@ func newConsolationElimination(entries Ranking, rankingGraph *RankingGraph) (*Si
 	return createSingleElimination(entries, false, rankingGraph)
 }
 
-func NewGroupKnockoutSingleElimination(entries Ranking, rankingGraph *RankingGraph) (*BaseTournament[*EliminationRanking], error) {
+func NewGroupKnockoutSingleElimination(entries Ranking, rankingGraph *RankingGraph) (Tournament, error) {
 	tournament, err := createSingleElimination(entries, true, rankingGraph)
-	return &tournament.BaseTournament, err
+	return tournament, err
 }

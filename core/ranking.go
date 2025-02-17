@@ -62,7 +62,7 @@ func (r *BaseRanking) Id() int {
 }
 
 func NewBaseRanking() BaseRanking {
-	id := NextNodeId()
+	id := NextId()
 	return BaseRanking{id: id}
 }
 
@@ -142,7 +142,7 @@ func (r *BaseTieableRanking) RemoveTieBreaker(tieBreaker Ranking) {
 func TieHash(tie []*Slot) string {
 	playerIds := make([]string, 0, len(tie))
 	for _, s := range tie {
-		playerIds = append(playerIds, s.player.Id())
+		playerIds = append(playerIds, s.Player.Id())
 	}
 
 	slices.Sort(playerIds)
@@ -210,12 +210,12 @@ func (r *BaseTieableRanking) TryTieBreak(tie []*Slot) [][]*Slot {
 	breakerRanks := tieBreaker.Ranks()
 	breakerIds := make([]string, 0, len(breakerRanks))
 	for _, s := range breakerRanks {
-		breakerIds = append(breakerIds, s.player.Id())
+		breakerIds = append(breakerIds, s.Player.Id())
 	}
 
 	slices.SortFunc(tie, func(a, b *Slot) int {
-		indexA := slices.Index(breakerIds, a.player.Id())
-		indexB := slices.Index(breakerIds, b.player.Id())
+		indexA := slices.Index(breakerIds, a.Player.Id())
+		indexB := slices.Index(breakerIds, b.Player.Id())
 		return cmp.Compare(indexA, indexB)
 	})
 
@@ -255,7 +255,7 @@ func (r *BaseTieableRanking) String() string {
 
 	for _, r := range r.TiedRanks() {
 		for _, s := range r {
-			player := s.player
+			player := s.Player
 			if player == nil {
 				sb.WriteString("Empty slot\n")
 			} else {

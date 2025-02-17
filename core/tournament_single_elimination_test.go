@@ -21,11 +21,11 @@ func TestSmallSingleElimination(t *testing.T) {
 	semi2 := tournament.MatchList.Matches[1]
 
 	// Highest vs lowest seed
-	eq1 := semi1.Slot1.player == players[0]
-	eq2 := semi1.Slot2.player == players[3]
+	eq1 := semi1.Slot1.Player == players[0]
+	eq2 := semi1.Slot2.Player == players[3]
 	// Second highest vs second lowest
-	eq3 := semi2.Slot1.player == players[1]
-	eq4 := semi2.Slot2.player == players[2]
+	eq3 := semi2.Slot1.Player == players[1]
+	eq4 := semi2.Slot2.Player == players[2]
 
 	if !eq1 || !eq2 || !eq3 || !eq4 {
 		t.Fatal("The players were assigned the wrong slots according to their seeds.")
@@ -49,19 +49,19 @@ func TestSmallSingleElimination(t *testing.T) {
 		t.Fatal("The final ranking did not update according to semi1 match result")
 	}
 
-	eq1 = finalRanking.TiedRanks()[0][0].player == players[0]
+	eq1 = finalRanking.TiedRanks()[0][0].Player == players[0]
 	if !eq1 {
 		t.Fatal("The final ranking did not put the semi1 winner to the top")
 	}
 
 	final := tournament.MatchList.Matches[2]
 
-	eq1 = final.Slot1.player == players[0]
+	eq1 = final.Slot1.Player == players[0]
 	if !eq1 {
 		t.Fatal("The semi1 winner did not advance into the final slot")
 	}
 
-	eq1 = final.Slot2.player == nil
+	eq1 = final.Slot2.Player == nil
 	if !eq1 {
 		t.Fatal("The second final slot is erroneously occupied")
 	}
@@ -70,15 +70,15 @@ func TestSmallSingleElimination(t *testing.T) {
 	semi2.EndMatch(NewScore(0, 1))
 	tournament.Update(winnerRankings[semi2])
 
-	eq1 = final.Slot2.player == players[2]
+	eq1 = final.Slot2.Player == players[2]
 	if !eq1 {
 		t.Fatal("The semi2 winner did not advance into the final slot")
 	}
 
-	eq1 = finalRanking.TiedRanks()[0][0].player == players[0]
-	eq2 = finalRanking.TiedRanks()[0][1].player == players[2]
-	eq3 = finalRanking.TiedRanks()[1][0].player == players[3]
-	eq4 = finalRanking.TiedRanks()[1][1].player == players[1]
+	eq1 = finalRanking.TiedRanks()[0][0].Player == players[0]
+	eq2 = finalRanking.TiedRanks()[0][1].Player == players[2]
+	eq3 = finalRanking.TiedRanks()[1][0].Player == players[3]
+	eq4 = finalRanking.TiedRanks()[1][1].Player == players[1]
 	if !eq1 || !eq2 {
 		t.Fatal("The semi winners did not get placed tied in the top rank of the final ranking")
 	}
@@ -90,10 +90,10 @@ func TestSmallSingleElimination(t *testing.T) {
 	final.EndMatch(NewScore(1, 0))
 	tournament.Update(winnerRankings[final])
 
-	eq1 = finalRanking.TiedRanks()[0][0].player == players[0]
-	eq2 = finalRanking.TiedRanks()[1][0].player == players[2]
-	eq3 = finalRanking.TiedRanks()[2][0].player == players[3]
-	eq4 = finalRanking.TiedRanks()[2][1].player == players[1]
+	eq1 = finalRanking.TiedRanks()[0][0].Player == players[0]
+	eq2 = finalRanking.TiedRanks()[1][0].Player == players[2]
+	eq3 = finalRanking.TiedRanks()[2][0].Player == players[3]
+	eq4 = finalRanking.TiedRanks()[2][1].Player == players[1]
 	if !eq1 {
 		t.Fatal("The finals winner did not get placed at the top of the final ranking")
 	}
@@ -137,14 +137,14 @@ func TestSingleEliminationUnbalanced(t *testing.T) {
 		t.Fatal("An additional first round match has a drawn bye slot while it should not")
 	}
 
-	eq1 = semi1.Slot1.player == players[0]
-	eq2 = semi2.Slot1.player == players[1]
+	eq1 = semi1.Slot1.Player == players[0]
+	eq2 = semi2.Slot1.Player == players[1]
 	if !eq1 || !eq2 {
 		t.Fatal("The two top seeded players did not move to their semi final slots")
 	}
 
-	eq1 = semi1.Slot2.player == nil
-	eq2 = semi2.Slot2.player == nil
+	eq1 = semi1.Slot2.Player == nil
+	eq2 = semi2.Slot2.Player == nil
 	if !eq1 || !eq2 {
 		t.Fatal("The second semi final slots are not empty")
 	}
@@ -177,7 +177,7 @@ func TestSingleEliminationWithdrawalPolicy(t *testing.T) {
 
 	tournament.Update(nil)
 
-	eq1 = ml.Rounds[1].Matches[0].Slot1.player == p2
+	eq1 = ml.Rounds[1].Matches[0].Slot1.Player == p2
 	if !eq1 {
 		t.Fatal("The opponent of the withdrawn player did not advance to the next round")
 	}
@@ -203,7 +203,7 @@ func TestSingleEliminationWithdrawalPolicy(t *testing.T) {
 
 	tournament.Update(nil)
 
-	eq1 = ml.Rounds[1].Matches[0].Slot1.player == p2
+	eq1 = ml.Rounds[1].Matches[0].Slot1.Player == p2
 	if !eq1 {
 		t.Fatal("The reentered player did not advance to the next round")
 	}
@@ -218,7 +218,7 @@ func TestSingleEliminationWithdrawalPolicy(t *testing.T) {
 	tournament.Update(nil)
 
 	eq1 = ml.Matches[0] == reenteredMatches[0]
-	eq2 := ml.Rounds[1].Matches[0].Slot1.player == nil
+	eq2 := ml.Rounds[1].Matches[0].Slot1.Player == nil
 	eq3 := !ml.Rounds[1].Matches[0].HasBye()
 	if !eq1 || !eq2 || !eq3 {
 		t.Fatal("The second reenter did not put the tournament into the original starting state")
@@ -240,7 +240,7 @@ func TestSingleEliminationWithdrawalPolicy(t *testing.T) {
 	ml.Matches[1].EndMatch(NewScore(0, 1))
 	tournament.Update(nil)
 
-	eq1 = ml.Rounds[2].Matches[0].Slot1.player == p4
+	eq1 = ml.Rounds[2].Matches[0].Slot1.Player == p4
 	if !eq1 {
 		t.Fatal("The winner of the first round did not go through to the third round with the walkover in the second")
 	}

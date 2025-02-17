@@ -111,7 +111,7 @@ func (t *SingleEliminationWithConsolation) createBracketFromRound(
 	winnerRankings := make([]*WinnerRanking, 0, 2*len(winnerRound.Matches))
 	for _, m := range winnerRound.Matches {
 		for s := range m.Slots {
-			winnerRanking := s.placement.Ranking().(*WinnerRanking)
+			winnerRanking := s.Placement.Ranking().(*WinnerRanking)
 			winnerRankings = append(winnerRankings, winnerRanking)
 		}
 	}
@@ -287,7 +287,7 @@ func NewSingleEliminationWithConsolation(
 func SingleEliminationWithConsolationBuilder(
 	numConsolationRounds, placesToPlayOut int,
 ) KnockoutBuilder {
-	builder := func(entries Ranking, rankingGraph *RankingGraph) (*BaseTournament[*EliminationRanking], error) {
+	builder := func(entries Ranking, rankingGraph *RankingGraph) (Tournament, error) {
 		tournament, err := createSingleEliminationWithConsolation(
 			entries,
 			numConsolationRounds,
@@ -295,7 +295,7 @@ func SingleEliminationWithConsolationBuilder(
 			rankingGraph,
 		)
 
-		return &tournament.BaseTournament, err
+		return tournament, err
 	}
 
 	return builder

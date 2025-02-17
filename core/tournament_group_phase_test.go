@@ -22,26 +22,26 @@ func TestGroupSeeding(t *testing.T) {
 		groupSlots = append(groupSlots, g.Entries.Ranks())
 	}
 
-	eq1 := groupSlots[0][0].player == players[0]
-	eq2 := groupSlots[1][0].player == players[1]
-	eq3 := groupSlots[2][0].player == players[2]
-	eq4 := groupSlots[3][0].player == players[3]
+	eq1 := groupSlots[0][0].Player == players[0]
+	eq2 := groupSlots[1][0].Player == players[1]
+	eq3 := groupSlots[2][0].Player == players[2]
+	eq4 := groupSlots[3][0].Player == players[3]
 	if !eq1 || !eq2 || !eq3 || !eq4 {
 		t.Fatal("The first four seeds did not get put into the first slots of the four groups.")
 	}
 
-	eq1 = groupSlots[0][1].player == players[7]
-	eq2 = groupSlots[1][1].player == players[6]
-	eq3 = groupSlots[2][1].player == players[5]
-	eq4 = groupSlots[3][1].player == players[4]
+	eq1 = groupSlots[0][1].Player == players[7]
+	eq2 = groupSlots[1][1].Player == players[6]
+	eq3 = groupSlots[2][1].Player == players[5]
+	eq4 = groupSlots[3][1].Player == players[4]
 	if !eq1 || !eq2 || !eq3 || !eq4 {
 		t.Fatal("The second four seeds did not get put into the second slots of the four groups in reverse.")
 	}
 
-	eq1 = groupSlots[0][2].player == players[8]
-	eq2 = groupSlots[1][2].player == players[9]
-	eq3 = groupSlots[2][2].player == players[10]
-	eq4 = groupSlots[3][2].player == players[11]
+	eq1 = groupSlots[0][2].Player == players[8]
+	eq2 = groupSlots[1][2].Player == players[9]
+	eq3 = groupSlots[2][2].Player == players[10]
+	eq4 = groupSlots[3][2].Player == players[11]
 	if !eq1 || !eq2 || !eq3 || !eq4 {
 		t.Fatal("The thrird four seeds did not get put into the thrird slots of the four groups.")
 	}
@@ -70,8 +70,8 @@ func TestGroupSeeding(t *testing.T) {
 		t.Fatal("The remaining entries were not put into the higher index groups")
 	}
 
-	eq1 = groupSlots[2][1].player == players[5]
-	eq2 = groupSlots[3][1].player == players[4]
+	eq1 = groupSlots[2][1].Player == players[5]
+	eq2 = groupSlots[3][1].Player == players[4]
 	if !eq1 || !eq2 {
 		t.Fatal("The two remaining entries did not go into the groups in reverse order")
 	}
@@ -137,23 +137,23 @@ func TestGroupPhaseRanking(t *testing.T) {
 	}
 
 	ranks = finalRanking.TiedRanks()
-	eq1 = ranks[0][0].player == players[0]
-	eq2 = ranks[1][0].player == players[1]
-	eq3 = ranks[2][0].player == players[2]
+	eq1 = ranks[0][0].Player == players[0]
+	eq2 = ranks[1][0].Player == players[1]
+	eq3 = ranks[2][0].Player == players[2]
 	if !eq1 || !eq2 || !eq3 {
 		t.Fatal("The group winners do not occupy the top 3 final ranks")
 	}
 
-	eq1 = ranks[3][0].player == players[5]
-	eq2 = ranks[4][0].player == players[4]
-	eq3 = ranks[5][0].player == players[3]
+	eq1 = ranks[3][0].Player == players[5]
+	eq2 = ranks[4][0].Player == players[4]
+	eq3 = ranks[5][0].Player == players[3]
 	if !eq1 || !eq2 || !eq3 {
 		t.Fatal("The group 2nd places do not occupy the ranks 4-6")
 	}
 
-	eq1 = ranks[6][0].player == players[6]
-	eq2 = ranks[7][0].player == players[7]
-	eq3 = ranks[8][0].player == players[8]
+	eq1 = ranks[6][0].Player == players[6]
+	eq2 = ranks[7][0].Player == players[7]
+	eq3 = ranks[8][0].Player == players[8]
 	if !eq1 || !eq2 || !eq3 {
 		t.Fatal("The group 3rd places do not occupy the ranks 7-9")
 	}
@@ -185,9 +185,9 @@ func TestCrossGroupTies(t *testing.T) {
 	}
 
 	eq1 = len(crossTies[0]) == 3
-	eq2 := crossTies[0][0].player == players[5]
-	eq3 := crossTies[0][1].player == players[4]
-	eq4 := crossTies[0][2].player == players[3]
+	eq2 := crossTies[0][0].Player == players[5]
+	eq3 := crossTies[0][1].Player == players[4]
+	eq4 := crossTies[0][2].Player == players[3]
 	if !eq1 || !eq2 || !eq3 || !eq4 {
 		t.Fatal("The cross tie does not contain the three 2nd placed group slots")
 	}
@@ -198,8 +198,8 @@ func TestCrossGroupTies(t *testing.T) {
 	ranks := finalRanking.TiedRanks()
 
 	eq1 = len(crossTies) == 0
-	eq2 = ranks[3][0].player == players[5]
-	eq3 = ranks[4][0].player == players[3]
+	eq2 = ranks[3][0].Player == players[5]
+	eq3 = ranks[4][0].Player == players[3]
 	if !eq1 || !eq2 || !eq3 {
 		t.Fatal("There is a blocking cross group tie despite the tie being the same size as the number of contested ranks")
 	}
@@ -209,8 +209,8 @@ func TestCrossGroupTies(t *testing.T) {
 	crossTies = finalRanking.CrossGroupTies()
 
 	eq1 = len(crossTies[0]) == 2
-	eq2 = crossTies[0][0].player == players[5]
-	eq3 = crossTies[0][1].player == players[3]
+	eq2 = crossTies[0][0].Player == players[5]
+	eq3 = crossTies[0][1].Player == players[3]
 	if !eq1 || !eq2 || !eq3 {
 		t.Fatal("The cross tie does not contain the two 2nd placed group slots who had fewer points")
 	}
@@ -285,16 +285,16 @@ func TestGroupPhaseWithdrawal(t *testing.T) {
 	ranks := finalRanking.TiedRanks()
 
 	eq1 = len(ranks) == 6
-	eq2 = ranks[0][0].player == players[3]
-	eq3 := ranks[1][0].player == players[5]
-	eq4 := ranks[2][0].player == players[4]
-	eq5 := ranks[3][0].player == players[1]
-	eq6 := ranks[5][0].player == players[2]
+	eq2 = ranks[0][0].Player == players[3]
+	eq3 := ranks[1][0].Player == players[5]
+	eq4 := ranks[2][0].Player == players[4]
+	eq5 := ranks[3][0].Player == players[1]
+	eq6 := ranks[5][0].Player == players[2]
 	if !eq1 || !eq2 || !eq3 || !eq4 || !eq5 || !eq6 {
 		t.Fatal("The final ranking has an unexpected order")
 	}
 
-	eq1 = ranks[4][0].player == nil && ranks[4][0].IsBye()
+	eq1 = ranks[4][0].Player == nil && ranks[4][0].IsBye()
 	if !eq1 {
 		t.Fatal("The withdrawn player was not excluded from the final rankings")
 	}

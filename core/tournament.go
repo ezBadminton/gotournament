@@ -136,7 +136,7 @@ func (t *BaseTournament[_]) addPolicies(
 func newBaseTournament[FinalRanking Ranking](entries Ranking) BaseTournament[FinalRanking] {
 	tournament := BaseTournament[FinalRanking]{
 		Entries: entries,
-		id:      NextNodeId(),
+		id:      NextId(),
 	}
 	return tournament
 }

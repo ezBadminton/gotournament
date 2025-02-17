@@ -10,7 +10,7 @@ import (
 
 var nodeId int = 0
 
-func NextNodeId() int {
+func NextId() int {
 	id := nodeId
 	nodeId += 1
 	return id

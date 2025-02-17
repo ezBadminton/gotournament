@@ -92,7 +92,7 @@ func collectRank(rank int, rankings []*MatchMetricRanking) [][]*Slot {
 		if slot == nil {
 			continue
 		}
-		metrics, ok := r.Metrics[slot.player]
+		metrics, ok := r.Metrics[slot.Player]
 		if ok && metrics.Withdrawn {
 			slot = NewByeSlot(false)
 		}
@@ -122,7 +122,7 @@ func collectContestedRank(
 		if crossRank == -1 {
 			panic("Slot was not found in the cross ranking")
 		}
-		metrics, ok := r.Metrics[slot.player]
+		metrics, ok := r.Metrics[slot.Player]
 		if ok && metrics.Withdrawn {
 			slot = NewByeSlot(false)
 		}

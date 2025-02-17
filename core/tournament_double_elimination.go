@@ -198,6 +198,6 @@ func NewDoubleElimination(entries Ranking) (*DoubleElimination, error) {
 	return createDoubleElimination(entries, nil)
 }
 
-func NewGroupKnockoutDoubleElimination(entries Ranking, rankingGraph *RankingGraph) (*DoubleElimination, error) {
+func NewGroupKnockoutDoubleElimination(entries Ranking, rankingGraph *RankingGraph) (Tournament, error) {
 	return createDoubleElimination(entries, rankingGraph)
 }

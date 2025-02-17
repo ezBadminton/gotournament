@@ -11,12 +11,13 @@ var (
 	ErrTooFewQuals   = errors.New("the number of qualifications has to be at least 2")
 )
 
-type KnockoutBuilder func(entries Ranking, rankingGraph *RankingGraph) (*BaseTournament[*EliminationRanking], error)
+type KnockoutBuilder func(entries Ranking, rankingGraph *RankingGraph) (Tournament, error)
 
 type GroupKnockout struct {
 	BaseTournament[*GroupKnockoutRanking]
-	groupPhase *GroupPhase
-	knockOut   *BaseTournament[*EliminationRanking]
+	GroupPhase         *GroupPhase
+	KnockOut           *BaseTournament[*EliminationRanking]
+	KnockOutTournament Tournament
 }
 
 func (t *GroupKnockout) initTournament(
@@ -42,31 +43,45 @@ func (t *GroupKnockout) initTournament(
 
 	rankingGraph := NewRankingGraph(entries)
 
-	t.groupPhase = newGroupPhase(entries, numGroups, numQualifications, walkoverScore, rankingGraph)
+	t.GroupPhase = newGroupPhase(entries, numGroups, numQualifications, walkoverScore, rankingGraph)
 
-	groupPhaseRanking := t.groupPhase.FinalRanking
+	groupPhaseRanking := t.GroupPhase.FinalRanking
 	qualificationRanking := NewGroupQualificationRanking(groupPhaseRanking, rankingGraph)
 
-	knockOut, err := knockoutBuilder(qualificationRanking, rankingGraph)
+	knockOutTournament, err := knockoutBuilder(qualificationRanking, rankingGraph)
 	if err != nil {
 		return err
 	}
-	t.knockOut = knockOut
+	t.KnockOutTournament = knockOutTournament
+	t.initKnockout()
 
 	matchList := t.createMatchList()
 
-	finalRanking := NewGroupKnockoutRanking(t.groupPhase, t.knockOut)
+	finalRanking := NewGroupKnockoutRanking(t.GroupPhase, t.KnockOut)
 	rankingGraph.AddVertex(finalRanking)
-	rankingGraph.AddEdge(t.knockOut.FinalRanking, finalRanking)
+	rankingGraph.AddEdge(t.KnockOut.FinalRanking, finalRanking)
 
 	t.addTournamentData(matchList, rankingGraph, finalRanking)
 
 	return nil
 }
 
+func (t *GroupKnockout) initKnockout() {
+	switch ko := t.KnockOutTournament.(type) {
+	case *SingleElimination:
+		t.KnockOut = &ko.BaseTournament
+	case *SingleEliminationWithConsolation:
+		t.KnockOut = &ko.BaseTournament
+	case *DoubleElimination:
+		t.KnockOut = &ko.BaseTournament
+	default:
+		panic("the knockout builder returned an unknown KO tournament type")
+	}
+}
+
 func (t *GroupKnockout) createMatchList() *MatchList {
-	ml1 := t.groupPhase.MatchList
-	ml2 := t.knockOut.MatchList
+	ml1 := t.GroupPhase.MatchList
+	ml2 := t.KnockOut.MatchList
 
 	matches := slices.Concat(ml1.Matches, ml2.Matches)
 	rounds := slices.Concat(ml1.Rounds, ml2.Rounds)
@@ -139,13 +154,13 @@ func NewGroupKnockout(
 	}
 
 	editingPolicy := &GroupKnockoutEditingPolicy{
-		groupPhase: groupKnockout.groupPhase,
-		knockOut:   groupKnockout.knockOut,
+		groupPhase: groupKnockout.GroupPhase,
+		knockOut:   groupKnockout.KnockOut,
 	}
 
 	withdrawalPolicy := &GroupKnockoutWithdrawalPolicy{
-		groupPhase: groupKnockout.groupPhase,
-		knockOut:   groupKnockout.knockOut,
+		groupPhase: groupKnockout.GroupPhase,
+		knockOut:   groupKnockout.KnockOut,
 	}
 
 	groupKnockout.addPolicies(editingPolicy, withdrawalPolicy)
