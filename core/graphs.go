@@ -4,13 +4,18 @@ package core
 
 import (
 	"iter"
+	"sync"
 
 	"github.com/dominikbraun/graph"
 )
 
 var nodeId int = 0
+var idMu sync.Mutex
 
 func NextId() int {
+	defer idMu.Unlock()
+	idMu.Lock()
+
 	id := nodeId
 	nodeId += 1
 	return id
