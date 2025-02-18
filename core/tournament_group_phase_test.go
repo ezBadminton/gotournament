@@ -97,7 +97,7 @@ func TestGroupPhaseRanking(t *testing.T) {
 		t.Fatal("The final ranking is marked as complete despite the matches not having started")
 	}
 
-	for _, m := range tournament.MatchList.Matches {
+	for _, m := range tournament.matchList.Matches {
 		if !m.HasBye() {
 			m.StartMatch()
 			m.EndMatch(NewScore(1, 0))
@@ -124,7 +124,7 @@ func TestGroupPhaseRanking(t *testing.T) {
 		t.Fatal("The cross group ties are not empty")
 	}
 
-	for _, m := range tournament.MatchList.Matches[6:9] {
+	for _, m := range tournament.matchList.Matches[6:9] {
 		m.Score = NewScore(0, 1)
 	}
 	tournament.Update(nil)
@@ -169,7 +169,7 @@ func TestCrossGroupTies(t *testing.T) {
 	rankingGraph := NewRankingGraph(entries)
 	tournament := newGroupPhase(entries, 3, 5, NewScore(1, 0), rankingGraph)
 
-	ml := tournament.MatchList
+	ml := tournament.matchList
 	finalRanking := tournament.FinalRanking
 
 	for _, m := range ml.Matches {
@@ -242,7 +242,7 @@ func TestGroupPhaseWithdrawal(t *testing.T) {
 		groupRankings = append(groupRankings, g.FinalRanking)
 	}
 	finalRanking := tournament.FinalRanking
-	ml := tournament.MatchList
+	ml := tournament.matchList
 
 	matches := ml.Matches
 	matches = []*Match{matches[2], matches[3], matches[5], matches[9]}

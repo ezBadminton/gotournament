@@ -120,7 +120,7 @@ func (t *DoubleElimination) createFinal() *Match {
 	return final
 }
 
-func (t *DoubleElimination) createMatchList() *MatchList {
+func (t *DoubleElimination) createMatchList() *matchList {
 	rounds := make([]*Round, 0, 2*len(t.WinnerBracket.Rounds))
 	matches := make([]*Match, 0, 4*len(t.WinnerBracket.Rounds)-2)
 
@@ -146,9 +146,14 @@ func (t *DoubleElimination) createMatchList() *MatchList {
 	rounds = append(rounds, finalRound)
 	matches = append(matches, t.final)
 
-	matchList := &MatchList{Matches: matches, Rounds: rounds}
+	matchList := &matchList{Matches: matches, Rounds: rounds}
 
 	return matchList
+}
+
+// Implements [KnockOutTournament] interface
+func (t *DoubleElimination) getBase() *BaseTournament[*EliminationRanking] {
+	return &t.BaseTournament
 }
 
 func combineRounds(winnerRound *Round, minorLoserMatches []*Match) *Round {
@@ -175,7 +180,7 @@ func createDoubleElimination(entries Ranking, rankingGraph *RankingGraph) (*Doub
 		return nil, err
 	}
 
-	matchList := doubleElimination.MatchList
+	matchList := doubleElimination.matchList
 	eliminationGraph := doubleElimination.EliminationGraph
 
 	editingPolicy := &EliminationEditingPolicy{
@@ -198,6 +203,6 @@ func NewDoubleElimination(entries Ranking) (*DoubleElimination, error) {
 	return createDoubleElimination(entries, nil)
 }
 
-func NewGroupKnockoutDoubleElimination(entries Ranking, rankingGraph *RankingGraph) (Tournament, error) {
+func NewGroupKnockoutDoubleElimination(entries Ranking, rankingGraph *RankingGraph) (KnockOutTournament, error) {
 	return createDoubleElimination(entries, rankingGraph)
 }

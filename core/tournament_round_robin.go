@@ -46,7 +46,7 @@ func (t *RoundRobin) initTournament(
 		matches = append(matches, r.Matches...)
 	}
 
-	matchList := &MatchList{Rounds: rounds, Matches: matches}
+	matchList := &matchList{Rounds: rounds, Matches: matches}
 
 	finalRanking := NewRoundRobinRanking(
 		evenEntries,
@@ -137,7 +137,7 @@ func (e *RoundRobinEditingPolicy) updateEditableMatches() {
 }
 
 type RoundRobinWithdrawalPolicy struct {
-	matchList *MatchList
+	matchList *matchList
 }
 
 // Withdraws the given player from the tournament.
@@ -185,7 +185,7 @@ func createRoundRobin(entries Ranking, passes int, walkoverScore Score, rankingG
 		return nil, err
 	}
 
-	matchList := roundRobin.MatchList
+	matchList := roundRobin.matchList
 
 	editingPolicy := &RoundRobinEditingPolicy{matches: matchList.Matches}
 

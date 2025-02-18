@@ -58,10 +58,10 @@ func (t *GroupPhase) initTournament(
 	t.addTournamentData(matchList, rankingGraph, finalRanking)
 }
 
-func (t *GroupPhase) createMatchList() *MatchList {
+func (t *GroupPhase) createMatchList() *matchList {
 	lastGroup := t.Groups[len(t.Groups)-1]
-	maxNumRounds := len(lastGroup.MatchList.Rounds)
-	maxNumMatches := len(lastGroup.MatchList.Matches)
+	maxNumRounds := len(lastGroup.matchList.Rounds)
+	maxNumMatches := len(lastGroup.matchList.Matches)
 
 	rounds := make([]*Round, 0, maxNumRounds)
 	matches := make([]*Match, 0, len(t.Groups)*maxNumMatches)
@@ -73,7 +73,7 @@ func (t *GroupPhase) createMatchList() *MatchList {
 		rounds = append(rounds, round)
 	}
 
-	matchList := &MatchList{Matches: matches, Rounds: rounds}
+	matchList := &matchList{Matches: matches, Rounds: rounds}
 
 	return matchList
 }
@@ -81,10 +81,10 @@ func (t *GroupPhase) createMatchList() *MatchList {
 func collectRounds(roundI int, groups []*RoundRobin) []*Round {
 	rounds := make([]*Round, 0, len(groups))
 	for _, g := range groups {
-		if roundI > len(g.MatchList.Rounds)-1 {
+		if roundI > len(g.matchList.Rounds)-1 {
 			continue
 		}
-		rounds = append(rounds, g.MatchList.Rounds[roundI])
+		rounds = append(rounds, g.matchList.Rounds[roundI])
 	}
 	return rounds
 }
@@ -172,7 +172,7 @@ func newGroupPhase(
 		rankingGraph,
 	)
 
-	matchList := groupPhase.MatchList
+	matchList := groupPhase.matchList
 
 	editingPolicy := &RoundRobinEditingPolicy{
 		matches: matchList.Matches,

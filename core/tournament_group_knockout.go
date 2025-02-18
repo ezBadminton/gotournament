@@ -11,13 +11,17 @@ var (
 	ErrTooFewQuals   = errors.New("the number of qualifications has to be at least 2")
 )
 
-type KnockoutBuilder func(entries Ranking, rankingGraph *RankingGraph) (Tournament, error)
+type KnockOutTournament interface {
+	getBase() *BaseTournament[*EliminationRanking]
+}
+
+type KnockoutBuilder func(entries Ranking, rankingGraph *RankingGraph) (KnockOutTournament, error)
 
 type GroupKnockout struct {
 	BaseTournament[*GroupKnockoutRanking]
 	GroupPhase         *GroupPhase
 	KnockOut           *BaseTournament[*EliminationRanking]
-	KnockOutTournament Tournament
+	KnockOutTournament KnockOutTournament
 }
 
 func (t *GroupKnockout) initTournament(
@@ -53,7 +57,7 @@ func (t *GroupKnockout) initTournament(
 		return err
 	}
 	t.KnockOutTournament = knockOutTournament
-	t.initKnockout()
+	t.KnockOut = knockOutTournament.getBase()
 
 	matchList := t.createMatchList()
 
@@ -66,27 +70,14 @@ func (t *GroupKnockout) initTournament(
 	return nil
 }
 
-func (t *GroupKnockout) initKnockout() {
-	switch ko := t.KnockOutTournament.(type) {
-	case *SingleElimination:
-		t.KnockOut = &ko.BaseTournament
-	case *SingleEliminationWithConsolation:
-		t.KnockOut = &ko.BaseTournament
-	case *DoubleElimination:
-		t.KnockOut = &ko.BaseTournament
-	default:
-		panic("the knockout builder returned an unknown KO tournament type")
-	}
-}
-
-func (t *GroupKnockout) createMatchList() *MatchList {
-	ml1 := t.GroupPhase.MatchList
-	ml2 := t.KnockOut.MatchList
+func (t *GroupKnockout) createMatchList() *matchList {
+	ml1 := t.GroupPhase.matchList
+	ml2 := t.KnockOut.matchList
 
 	matches := slices.Concat(ml1.Matches, ml2.Matches)
 	rounds := slices.Concat(ml1.Rounds, ml2.Rounds)
 
-	return &MatchList{Matches: matches, Rounds: rounds}
+	return &matchList{Matches: matches, Rounds: rounds}
 }
 
 type GroupKnockoutEditingPolicy struct {
@@ -96,7 +87,7 @@ type GroupKnockoutEditingPolicy struct {
 }
 
 func (e *GroupKnockoutEditingPolicy) updateEditableMatches() {
-	knockOutStarted := e.knockOut.MatchList.MatchesStarted()
+	knockOutStarted := e.knockOut.matchList.MatchesStarted()
 	if knockOutStarted {
 		e.knockOut.updateEditableMatches()
 		e.editableMatches = e.knockOut.EditableMatches()
@@ -116,7 +107,7 @@ type GroupKnockoutWithdrawalPolicy struct {
 }
 
 func (w *GroupKnockoutWithdrawalPolicy) WithdrawPlayer(player Player) []*Match {
-	knockOutStarted := w.knockOut.MatchList.MatchesStarted()
+	knockOutStarted := w.knockOut.matchList.MatchesStarted()
 	if knockOutStarted {
 		return w.knockOut.WithdrawPlayer(player)
 	} else {
@@ -125,7 +116,7 @@ func (w *GroupKnockoutWithdrawalPolicy) WithdrawPlayer(player Player) []*Match {
 }
 
 func (w *GroupKnockoutWithdrawalPolicy) ReenterPlayer(player Player) []*Match {
-	knockOutStarted := w.knockOut.MatchList.MatchesStarted()
+	knockOutStarted := w.knockOut.matchList.MatchesStarted()
 	if knockOutStarted {
 		return w.knockOut.ReenterPlayer(player)
 	} else {

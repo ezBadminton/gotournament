@@ -60,7 +60,7 @@ func (t *SingleElimination) initTournament(
 		matches = append(matches, r.Matches...)
 	}
 
-	matchList := &MatchList{Matches: matches, Rounds: rounds}
+	matchList := &matchList{Matches: matches, Rounds: rounds}
 
 	finals := matches[len(matches)-1]
 	finalsRanking := []Ranking{t.WinnerRankings[finals]}
@@ -192,7 +192,7 @@ func getNumMatches(numRounds int) int {
 
 type EliminationEditingPolicy struct {
 	editableMatches  []*Match
-	matchList        *MatchList
+	matchList        *matchList
 	eliminationGraph *EliminationGraph
 }
 
@@ -261,7 +261,7 @@ func (e *EliminationEditingPolicy) isEditable(match *Match) bool {
 }
 
 type EliminationWithdrawalPolicy struct {
-	matchList        *MatchList
+	matchList        *matchList
 	eliminationGraph *EliminationGraph
 }
 
@@ -327,6 +327,11 @@ func (e *EliminationWithdrawalPolicy) ReenterPlayer(player Player) []*Match {
 	return reenteredMatches
 }
 
+// Implements [KnockOutTournament] interface
+func (t *SingleElimination) getBase() *BaseTournament[*EliminationRanking] {
+	return &t.BaseTournament
+}
+
 func createSingleElimination(entries Ranking, seeded bool, rankingGraph *RankingGraph) (*SingleElimination, error) {
 	singleElimination := &SingleElimination{
 		BaseTournament: newBaseTournament[*EliminationRanking](entries),
@@ -342,7 +347,7 @@ func createSingleElimination(entries Ranking, seeded bool, rankingGraph *Ranking
 	}
 
 	eliminationGraph := singleElimination.EliminationGraph
-	matchList := singleElimination.MatchList
+	matchList := singleElimination.matchList
 
 	editingPolicy := &EliminationEditingPolicy{
 		matchList:        matchList,
@@ -369,7 +374,7 @@ func newConsolationElimination(entries Ranking, rankingGraph *RankingGraph) (*Si
 	return createSingleElimination(entries, false, rankingGraph)
 }
 
-func NewGroupKnockoutSingleElimination(entries Ranking, rankingGraph *RankingGraph) (Tournament, error) {
+func NewGroupKnockoutSingleElimination(entries Ranking, rankingGraph *RankingGraph) (KnockOutTournament, error) {
 	tournament, err := createSingleElimination(entries, true, rankingGraph)
 	return tournament, err
 }

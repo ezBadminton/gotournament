@@ -17,8 +17,8 @@ func TestSmallSingleElimination(t *testing.T) {
 	tournament, _ := NewSingleElimination(entries)
 	winnerRankings := tournament.WinnerRankings
 
-	semi1 := tournament.MatchList.Matches[0]
-	semi2 := tournament.MatchList.Matches[1]
+	semi1 := tournament.matchList.Matches[0]
+	semi2 := tournament.matchList.Matches[1]
 
 	// Highest vs lowest seed
 	eq1 := semi1.Slot1.Player == players[0]
@@ -54,7 +54,7 @@ func TestSmallSingleElimination(t *testing.T) {
 		t.Fatal("The final ranking did not put the semi1 winner to the top")
 	}
 
-	final := tournament.MatchList.Matches[2]
+	final := tournament.matchList.Matches[2]
 
 	eq1 = final.Slot1.Player == players[0]
 	if !eq1 {
@@ -118,13 +118,13 @@ func TestSingleEliminationUnbalanced(t *testing.T) {
 	entries := NewConstantRanking(players)
 	tournament, _ := NewSingleElimination(entries)
 
-	quarter1 := tournament.MatchList.Matches[0]
-	quarter2 := tournament.MatchList.Matches[1]
-	quarter3 := tournament.MatchList.Matches[2]
-	quarter4 := tournament.MatchList.Matches[3]
+	quarter1 := tournament.matchList.Matches[0]
+	quarter2 := tournament.matchList.Matches[1]
+	quarter3 := tournament.matchList.Matches[2]
+	quarter4 := tournament.matchList.Matches[3]
 
-	semi1 := tournament.MatchList.Matches[4]
-	semi2 := tournament.MatchList.Matches[5]
+	semi1 := tournament.matchList.Matches[4]
+	semi2 := tournament.matchList.Matches[5]
 
 	eq1 := quarter1.HasDrawnBye()
 	eq2 := quarter3.HasDrawnBye()
@@ -161,7 +161,7 @@ func TestSingleEliminationWithdrawalPolicy(t *testing.T) {
 	tournament, _ := NewSingleElimination(entries)
 
 	wp := tournament.WithdrawalPolicy
-	ml := tournament.MatchList
+	ml := tournament.matchList
 
 	p1 := players[0]
 	p2 := players[7]
@@ -170,7 +170,7 @@ func TestSingleEliminationWithdrawalPolicy(t *testing.T) {
 
 	withdrawnMatches := wp.WithdrawPlayer(p1)
 
-	eq1 := tournament.MatchList.Matches[0] == withdrawnMatches[0]
+	eq1 := tournament.matchList.Matches[0] == withdrawnMatches[0]
 	if !eq1 {
 		t.Fatal("The first seed player did not withdraw from their first round match")
 	}
@@ -255,7 +255,7 @@ func TestSingleEliminationWithdrawalPolicy(t *testing.T) {
 	tournament, _ = NewSingleElimination(entries)
 
 	wp = tournament.WithdrawalPolicy
-	ml = tournament.MatchList
+	ml = tournament.matchList
 
 	p1 = players[0]
 	p2 = players[3]
@@ -311,7 +311,7 @@ func TestSingleEliminationEditingPolicy(t *testing.T) {
 	entries := NewConstantRanking(players)
 	tournament, _ := NewSingleElimination(entries)
 
-	ml := tournament.MatchList
+	ml := tournament.matchList
 
 	ep := tournament.EditingPolicy
 	ep.updateEditableMatches()

@@ -1,6 +1,9 @@
 package core
 
-import "math/rand"
+import (
+	"math/rand"
+	"slices"
+)
 
 const (
 	SeedRandom = iota
@@ -8,18 +11,24 @@ const (
 	SeedTiered = iota
 )
 
-func SeededShuffle[S ~[]E, E any](slice S, seedingMode int, rngSeed int64) {
+func SeededShuffle[S ~[]E, E any](seeded S, unseeded S, seedingMode int, rngSeed int64) S {
+	rng := rand.New(rand.NewSource(rngSeed))
+	shuffle(unseeded, rng)
+
 	if seedingMode == SeedSingle {
-		return
+		return slices.Concat(seeded, unseeded)
 	}
 
-	rng := rand.New(rand.NewSource(rngSeed))
+	// New rng so the seeded shuffle is not influenced by the length of unseeded
+	rng = rand.New(rand.NewSource(^rngSeed))
 	switch seedingMode {
 	case SeedRandom:
-		shuffle(slice, rng)
+		shuffle(seeded, rng)
 	case SeedTiered:
-		tieredShuffle(slice, rng)
+		tieredShuffle(seeded, rng)
 	}
+
+	return slices.Concat(seeded, unseeded)
 }
 
 func tieredShuffle[S ~[]E, E any](slice S, rng *rand.Rand) {

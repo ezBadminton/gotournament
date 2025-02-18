@@ -43,7 +43,7 @@ func (r *GroupPhaseRanking) updateRanks() {
 
 	groupsFinished := true
 	for _, g := range r.groups {
-		if !g.MatchList.MatchesComplete() {
+		if !g.matchList.MatchesComplete() {
 			groupsFinished = false
 			break
 		}

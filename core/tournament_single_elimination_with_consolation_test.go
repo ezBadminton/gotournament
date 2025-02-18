@@ -47,16 +47,16 @@ func TestConsolationBrackets(t *testing.T) {
 	if !eq1 {
 		t.Fatal("The tournament with 16 places to play out does not have the expected amount of brackets")
 	}
-	eq1 = len(tournament.MatchList.Rounds[3].NestedRounds) == 8
+	eq1 = len(tournament.matchList.Rounds[3].NestedRounds) == 8
 	if !eq1 {
 		t.Fatal("The tournament does not have 8 finals")
 	}
 
 	mainBracket := brackets[0]
 
-	eq1 = len(mainBracket.MatchList.Rounds) == len(mainBracket.Consolations[0].MatchList.Rounds)+1
-	eq2 := len(mainBracket.MatchList.Rounds) == len(mainBracket.Consolations[1].MatchList.Rounds)+2
-	eq3 := len(mainBracket.MatchList.Rounds) == len(mainBracket.Consolations[2].MatchList.Rounds)+3
+	eq1 = len(mainBracket.matchList.Rounds) == len(mainBracket.Consolations[0].matchList.Rounds)+1
+	eq2 := len(mainBracket.matchList.Rounds) == len(mainBracket.Consolations[1].matchList.Rounds)+2
+	eq3 := len(mainBracket.matchList.Rounds) == len(mainBracket.Consolations[2].matchList.Rounds)+3
 	if !eq1 || !eq2 || !eq3 {
 		t.Fatal("The consolation brackets do not have a descending amount of rounds")
 	}
@@ -76,7 +76,7 @@ func TestConsolationBrackets(t *testing.T) {
 	if !eq1 {
 		t.Fatal("The tournament with 14 places to play out does not have the expected amount of brackets")
 	}
-	eq1 = len(tournament.MatchList.Rounds[3].NestedRounds) == 7
+	eq1 = len(tournament.matchList.Rounds[3].NestedRounds) == 7
 	if !eq1 {
 		t.Fatal("The tournament does not have 7 finals")
 	}
@@ -129,8 +129,8 @@ func TestConsolationGraphs(t *testing.T) {
 	firstConsolation := mainBracket.Consolations[0]
 	secondConsolation := firstConsolation.Consolations[0]
 
-	firstWinnerRanking := mainBracket.WinnerRankings[mainBracket.MatchList.Matches[0]]
-	firstConsolationWinnerRanking := firstConsolation.WinnerRankings[firstConsolation.MatchList.Matches[0]]
+	firstWinnerRanking := mainBracket.WinnerRankings[mainBracket.matchList.Matches[0]]
+	firstConsolationWinnerRanking := firstConsolation.WinnerRankings[firstConsolation.matchList.Matches[0]]
 
 	firstMatchDependants := rankingGraph.GetDependants(firstWinnerRanking)
 	firstConsolationDependants := rankingGraph.GetDependants(firstConsolationWinnerRanking)
@@ -144,9 +144,9 @@ func TestConsolationGraphs(t *testing.T) {
 
 	eliminationGraph := tournament.EliminationGraph
 
-	firstMatch := mainBracket.MatchList.Matches[0]
-	secondRoundMatch := mainBracket.MatchList.Rounds[1].Matches[0]
-	firstConsolationMatch := firstConsolation.MatchList.Matches[0]
+	firstMatch := mainBracket.matchList.Matches[0]
+	secondRoundMatch := mainBracket.matchList.Rounds[1].Matches[0]
+	firstConsolationMatch := firstConsolation.matchList.Matches[0]
 
 	firstMatchQualifications := eliminationGraph.GetDependants(firstMatch)
 
@@ -168,7 +168,7 @@ func TestConsolationRanking(t *testing.T) {
 	entries := NewConstantRanking(players)
 	tournament, _ := NewSingleEliminationWithConsolation(entries, 0, 4)
 
-	matchList := tournament.MatchList
+	matchList := tournament.matchList
 	finalRanking := tournament.FinalRanking
 
 	semi1 := matchList.Matches[0]
@@ -217,7 +217,7 @@ func TestConsolationWithdrawal(t *testing.T) {
 	entries := NewConstantRanking(players)
 	tournament, _ := NewSingleEliminationWithConsolation(entries, 0, 8)
 
-	ml := tournament.MatchList
+	ml := tournament.matchList
 	brackets := tournament.Brackets
 
 	semi1 := ml.Rounds[1].Matches[0]
@@ -227,8 +227,8 @@ func TestConsolationWithdrawal(t *testing.T) {
 		t.Fatal("The first seed player did not advance to the next round")
 	}
 
-	firstConsolationMatch := brackets[1].MatchList.Matches[0]
-	matchFor7th := brackets[2].MatchList.Matches[0]
+	firstConsolationMatch := brackets[1].matchList.Matches[0]
+	matchFor7th := brackets[2].matchList.Matches[0]
 
 	eq1 = firstConsolationMatch.Slot1.IsBye()
 	eq2 := matchFor7th.Slot1.IsBye()
@@ -245,7 +245,7 @@ func TestConsolationWithdrawal(t *testing.T) {
 	}
 
 	tournament.Update(nil)
-	matchFor3rd := brackets[3].MatchList.Matches[0]
+	matchFor3rd := brackets[3].matchList.Matches[0]
 
 	eq1 = matchFor3rd.Slot1.IsBye()
 	if !eq1 {
@@ -262,8 +262,8 @@ func TestConsolationWithdrawal(t *testing.T) {
 	}
 
 	tournament.Update(nil)
-	final := brackets[0].MatchList.Matches[6]
-	matchFor5th := brackets[1].MatchList.Matches[2]
+	final := brackets[0].matchList.Matches[6]
+	matchFor5th := brackets[1].matchList.Matches[2]
 	eq1 = final.Slot1.IsBye()
 	eq2 = matchFor3rd.Slot1.IsBye()
 	eq3 := firstConsolationMatch.Slot1.IsBye()
@@ -283,7 +283,7 @@ func TestConsolationEditingPolicy(t *testing.T) {
 	entries := NewConstantRanking(players)
 	tournament, _ := NewSingleEliminationWithConsolation(entries, 0, 8)
 
-	ml := tournament.MatchList
+	ml := tournament.matchList
 	ep := tournament.EditingPolicy
 
 	editableMatches := ep.EditableMatches()

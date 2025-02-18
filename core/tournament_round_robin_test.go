@@ -42,7 +42,7 @@ func TestRoundRobin(t *testing.T) {
 
 	tournament, _ := NewRoundRobin(entries, 1, NewScore(21, 0))
 
-	ml := tournament.MatchList
+	ml := tournament.matchList
 	finalRanking := tournament.FinalRanking
 
 	eq1 := len(ml.Matches) == 6
@@ -121,7 +121,7 @@ func TestRoundRobinByes(t *testing.T) {
 	entries := NewConstantRanking(players)
 	tournament, _ := NewRoundRobin(entries, 1, NewScore(21, 0))
 
-	ml := tournament.MatchList
+	ml := tournament.matchList
 	finalRanking := tournament.FinalRanking
 
 	eq1 := len(ml.Matches) == 6
@@ -220,7 +220,7 @@ func TestRoundRobinEditing(t *testing.T) {
 	entries := NewConstantRanking(players)
 	tournament, _ := NewRoundRobin(entries, 1, NewScore(21, 0))
 
-	ml := tournament.MatchList
+	ml := tournament.matchList
 	ep := tournament.EditingPolicy
 
 	editableMatches := ep.EditableMatches()
@@ -255,7 +255,7 @@ func TestRoundRobinTies(t *testing.T) {
 	tournament, _ := NewRoundRobin(entries, 1, NewScore(1, 0))
 
 	// 2-1 2-0 0-2
-	matches := tournament.MatchList.Matches
+	matches := tournament.matchList.Matches
 	finalRanking := tournament.FinalRanking
 
 	for _, m := range []*Match{matches[1], matches[2], matches[4]} {
@@ -284,7 +284,7 @@ func TestRoundRobinTies(t *testing.T) {
 	}
 
 	tournament, _ = NewRoundRobin(entries, 2, NewScore(1, 0))
-	matches = tournament.MatchList.Matches
+	matches = tournament.matchList.Matches
 	finalRanking = tournament.FinalRanking
 
 	// p1 and p2 win against p3 and p1 & p2
@@ -345,7 +345,7 @@ func TestRoundRobinTies(t *testing.T) {
 	}
 	entries = NewConstantRanking(players)
 	tournament, _ = NewRoundRobin(entries, 2, NewScore(1, 0))
-	matches = tournament.MatchList.Matches
+	matches = tournament.matchList.Matches
 	finalRanking = tournament.FinalRanking
 
 	p1 = players[0]

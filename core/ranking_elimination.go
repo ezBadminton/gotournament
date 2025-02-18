@@ -10,7 +10,7 @@ import "slices"
 type EliminationRanking struct {
 	BaseTieableRanking
 
-	MatchList *MatchList
+	MatchList *matchList
 	Entries   Ranking
 }
 
@@ -125,7 +125,7 @@ func RemoveDoubleRanks(ranks [][]*Slot) [][]*Slot {
 }
 
 func NewEliminationRanking(
-	matchList *MatchList,
+	matchList *matchList,
 	entries Ranking,
 	finalsRankings []Ranking,
 	rankingGraph *RankingGraph,

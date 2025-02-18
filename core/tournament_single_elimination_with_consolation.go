@@ -48,7 +48,7 @@ func (t *SingleEliminationWithConsolation) initTournament(
 
 	finalsRankings := make([]Ranking, 0, len(t.Brackets))
 	for _, b := range t.Brackets {
-		finals := b.MatchList.Matches[len(b.MatchList.Matches)-1]
+		finals := b.matchList.Matches[len(b.matchList.Matches)-1]
 		finalsRanking := b.WinnerRankings[finals]
 		finalsRankings = append(finalsRankings, finalsRanking)
 	}
@@ -74,15 +74,15 @@ func (t *SingleEliminationWithConsolation) createConsolationBrackets(
 		return
 	}
 
-	numRoundsToConsole := len(winnerBracket.MatchList.Rounds) - 1
+	numRoundsToConsole := len(winnerBracket.matchList.Rounds) - 1
 
 	if consolationDepth <= 0 {
 		numFinalsRequired := placesToFinals(playOutDepth)
 		numRoundsToConsole = min(numRoundsToConsole, finalsToBrackets(numFinalsRequired))
 	}
 
-	startIndex := len(winnerBracket.MatchList.Rounds) - numRoundsToConsole
-	roundsToConsole := winnerBracket.MatchList.Rounds[startIndex:]
+	startIndex := len(winnerBracket.matchList.Rounds) - numRoundsToConsole
+	roundsToConsole := winnerBracket.matchList.Rounds[startIndex:]
 
 	for _, r := range slices.Backward(roundsToConsole) {
 		consolationBracket := t.createBracketFromRound(r, winnerBracket)
@@ -138,14 +138,14 @@ func (t *SingleEliminationWithConsolation) createBracketFromRound(
 		t.RankingGraph.AddEdge(r, consolationEntries)
 	}
 
-	roundIndex := slices.Index(winnerBracket.MatchList.Rounds, winnerRound)
-	prevRound := winnerBracket.MatchList.Rounds[roundIndex-1]
-	linkMatches(prevRound.Matches, consolationBracket.MatchList.Rounds[0].Matches, t.EliminationGraph)
+	roundIndex := slices.Index(winnerBracket.matchList.Rounds, winnerRound)
+	prevRound := winnerBracket.matchList.Rounds[roundIndex-1]
+	linkMatches(prevRound.Matches, consolationBracket.matchList.Rounds[0].Matches, t.EliminationGraph)
 
 	return consolationBracket
 }
 
-func (t *SingleEliminationWithConsolation) createMatchList() *MatchList {
+func (t *SingleEliminationWithConsolation) createMatchList() *matchList {
 	stack := make([]*ConsolationBracket, 0, 32)
 	stack = append(stack, t.MainBracket)
 
@@ -160,15 +160,15 @@ func (t *SingleEliminationWithConsolation) createMatchList() *MatchList {
 	}
 
 	// Group the finals/semi-finals/etc. of all brackets together
-	maxNumRounds := len(t.MainBracket.MatchList.Rounds)
+	maxNumRounds := len(t.MainBracket.matchList.Rounds)
 	groupedRounds := make([][]*Round, 0, maxNumRounds)
 	for i := range maxNumRounds {
 		size := 1 << i
 		groupedRounds = append(groupedRounds, make([]*Round, 0, size))
 	}
 	for _, b := range orderedBrackets {
-		numRounds := len(b.MatchList.Rounds)
-		for i, r := range b.MatchList.Rounds {
+		numRounds := len(b.matchList.Rounds)
+		for i, r := range b.matchList.Rounds {
 			groupI := i + (maxNumRounds - numRounds)
 			groupedRounds[groupI] = append(groupedRounds[groupI], r)
 		}
@@ -192,12 +192,17 @@ func (t *SingleEliminationWithConsolation) createMatchList() *MatchList {
 		rounds = append(rounds, round)
 	}
 
-	matchList := &MatchList{
+	matchList := &matchList{
 		Matches: matches,
 		Rounds:  rounds,
 	}
 
 	return matchList
+}
+
+// Implements [KnockOutTournament] interface
+func (t *SingleEliminationWithConsolation) getBase() *BaseTournament[*EliminationRanking] {
+	return &t.BaseTournament
 }
 
 func allBye(slots []*Slot) bool {
@@ -252,7 +257,7 @@ func createSingleEliminationWithConsolation(
 		return nil, err
 	}
 
-	matchList := consolationTournament.MatchList
+	matchList := consolationTournament.matchList
 	eliminationGraph := consolationTournament.EliminationGraph
 
 	editingPolicy := &EliminationEditingPolicy{
@@ -287,7 +292,7 @@ func NewSingleEliminationWithConsolation(
 func SingleEliminationWithConsolationBuilder(
 	numConsolationRounds, placesToPlayOut int,
 ) KnockoutBuilder {
-	builder := func(entries Ranking, rankingGraph *RankingGraph) (Tournament, error) {
+	builder := func(entries Ranking, rankingGraph *RankingGraph) (KnockOutTournament, error) {
 		tournament, err := createSingleEliminationWithConsolation(
 			entries,
 			numConsolationRounds,

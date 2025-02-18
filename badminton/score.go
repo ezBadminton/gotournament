@@ -26,7 +26,7 @@ var (
 	ErrEqualSetWins    = errors.New("both opponents won an equal number of sets")
 )
 
-type scoreSettings struct {
+type ScoreSettings struct {
 	WinningPoints, WinningSets, MaxPoints int
 	TwoPointMargin                        bool
 }
@@ -34,12 +34,12 @@ type scoreSettings struct {
 func NewScoreSettings(
 	winningPoints, winningSets, maxPoints int,
 	twoPointMargin bool,
-) (scoreSettings, error) {
+) (ScoreSettings, error) {
 	if !twoPointMargin {
 		maxPoints = winningPoints
 	}
 
-	scoreSettings := scoreSettings{
+	scoreSettings := ScoreSettings{
 		winningPoints, winningSets, maxPoints, twoPointMargin,
 	}
 
@@ -101,7 +101,7 @@ func (s *score) Invert() core.Score {
 
 func NewScore(
 	a, b []int,
-	settings scoreSettings,
+	settings ScoreSettings,
 ) (*score, error) {
 	switch {
 	case len(a) == 0 || len(b) == 0:
@@ -155,7 +155,7 @@ func NewScore(
 	return &score{a, b}, nil
 }
 
-func MaxScore(settings scoreSettings) *score {
+func MaxScore(settings ScoreSettings) *score {
 	a := make([]int, settings.WinningSets)
 	b := make([]int, settings.WinningSets)
 	for i := range settings.WinningSets {

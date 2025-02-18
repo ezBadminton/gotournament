@@ -14,7 +14,7 @@ func TestSeeding(t *testing.T) {
 
 	seedShuffled := slices.Clone(original)
 
-	SeededShuffle(seedShuffled, SeedSingle, 42)
+	seedShuffled = SeededShuffle(seedShuffled, []int{}, SeedSingle, 42)
 	if !reflect.DeepEqual(seedShuffled, original) {
 		t.Fatal("seeds were shuffled with SeedSingle mode")
 	}
@@ -22,7 +22,7 @@ func TestSeeding(t *testing.T) {
 	swaps := 0
 	for rng := range 30 {
 		seedShuffled = slices.Clone(original)
-		SeededShuffle(seedShuffled, SeedRandom, int64(rng))
+		seedShuffled = SeededShuffle(seedShuffled, []int{}, SeedRandom, int64(rng))
 
 		if !containsAll(seedShuffled, original) {
 			t.Fatal("the shuffle removed elements")
@@ -38,7 +38,7 @@ func TestSeeding(t *testing.T) {
 
 	for rng := range 30 {
 		seedShuffled = slices.Clone(original)
-		SeededShuffle(seedShuffled, SeedTiered, int64(rng))
+		seedShuffled = SeededShuffle(seedShuffled, []int{}, SeedTiered, int64(rng))
 
 		if seedShuffled[0] != original[0] || seedShuffled[1] != original[1] {
 			t.Fatal("the first two seeds should stay fixed in their tier")

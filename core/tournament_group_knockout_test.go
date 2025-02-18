@@ -21,13 +21,13 @@ func TestGroupKnockoutStructure(t *testing.T) {
 		NewScore(42, 0),
 	)
 
-	eq1 := len(tournament.KnockOut.MatchList.Rounds) == 3
+	eq1 := len(tournament.KnockOut.matchList.Rounds) == 3
 	if !eq1 {
 		t.Fatal("Single elimination knockout has unexpected amount of rounds")
 	}
 
-	tournament.MatchList.Matches[4].StartMatch()
-	tournament.MatchList.Matches[4].EndMatch(NewScore(1, 0))
+	tournament.matchList.Matches[4].StartMatch()
+	tournament.matchList.Matches[4].EndMatch(NewScore(1, 0))
 	tournament.Update(nil)
 
 	ranks := tournament.FinalRanking.TiedRanks()

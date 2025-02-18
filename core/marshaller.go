@@ -72,7 +72,7 @@ func marshalTieableRanking(ranking TieableRanking) [][]int {
 	return slotIds
 }
 
-func marshalMatchList(matchList *MatchList) map[string]any {
+func marshalMatchList(matchList *matchList) map[string]any {
 	rounds := make([][]map[string]any, len(matchList.Rounds))
 	for i, round := range matchList.Rounds {
 		roundMatches := make([]map[string]any, len(round.Matches))
@@ -111,7 +111,7 @@ func marshalMatch(match *Match) map[string]any {
 
 func marshalSingleElimination(tournament *SingleElimination) map[string]any {
 	ranksAndSlots := marshalRankingsAndSlots(tournament.Entries, tournament.RankingGraph)
-	matchList := marshalMatchList(tournament.MatchList)
+	matchList := marshalMatchList(tournament.matchList)
 	result := map[string]any{
 		"type": "SingleElimination",
 	}
@@ -124,7 +124,7 @@ func marshalSingleElimination(tournament *SingleElimination) map[string]any {
 
 func marshalRoundRobin(tournament *RoundRobin) map[string]any {
 	ranksAndSlots := marshalRankingsAndSlots(tournament.Entries, tournament.RankingGraph)
-	matchList := marshalMatchList(tournament.MatchList)
+	matchList := marshalMatchList(tournament.matchList)
 	result := map[string]any{
 		"type": "RoundRobin",
 	}
@@ -149,7 +149,7 @@ func marshalSingleEliminationWithConsolation(tournament *SingleEliminationWithCo
 }
 
 func marshalConsolationBracket(bracket *ConsolationBracket) map[string]any {
-	matchList := marshalMatchList(bracket.MatchList)
+	matchList := marshalMatchList(bracket.matchList)
 	nested := make([]map[string]any, len(bracket.Consolations))
 	for i, bracket := range bracket.Consolations {
 		nested[i] = marshalConsolationBracket(bracket)
@@ -163,7 +163,7 @@ func marshalConsolationBracket(bracket *ConsolationBracket) map[string]any {
 
 func marshalDoubleElimination(tournamet *DoubleElimination) map[string]any {
 	ranksAndSlots := marshalRankingsAndSlots(tournamet.Entries, tournamet.RankingGraph)
-	matchList := marshalMatchList(tournamet.MatchList)
+	matchList := marshalMatchList(tournamet.matchList)
 	result := map[string]any{
 		"type": "DoubleElimination",
 	}
@@ -177,7 +177,7 @@ func marshalDoubleElimination(tournamet *DoubleElimination) map[string]any {
 func marshalGroupPhase(tournament *GroupPhase) map[string]any {
 	groupMatchLists := make([]any, 0)
 	for _, g := range tournament.Groups {
-		matchList := marshalMatchList(g.MatchList)
+		matchList := marshalMatchList(g.matchList)
 		groupMatchLists = append(groupMatchLists, matchList["rounds"])
 	}
 	result := map[string]any{
@@ -194,7 +194,7 @@ func marshalGroupKnockout(tournament *GroupKnockout) map[string]any {
 	var koPhase map[string]any
 	switch ko := tournament.KnockOutTournament.(type) {
 	case *SingleElimination:
-		matchList := marshalMatchList(ko.MatchList)
+		matchList := marshalMatchList(ko.matchList)
 		koPhase = map[string]any{
 			"type": "SingleElimination",
 		}
@@ -206,7 +206,7 @@ func marshalGroupKnockout(tournament *GroupKnockout) map[string]any {
 			"mainBracket": mainBracket,
 		}
 	case *DoubleElimination:
-		matchList := marshalMatchList(ko.MatchList)
+		matchList := marshalMatchList(ko.matchList)
 		koPhase = map[string]any{
 			"type": "DoubleElimination",
 		}

@@ -8,12 +8,12 @@ var (
 
 // A slice of matches and a slice of rounds containing all
 // matches.
-type MatchList struct {
+type matchList struct {
 	Matches []*Match
 	Rounds  []*Round
 }
 
-func (l *MatchList) MatchesOfPlayer(player Player) []*Match {
+func (l *matchList) MatchesOfPlayer(player Player) []*Match {
 	matches := make([]*Match, 0, 5)
 	for _, m := range l.Matches {
 		if m.HasDrawnBye() {
@@ -29,7 +29,7 @@ func (l *MatchList) MatchesOfPlayer(player Player) []*Match {
 }
 
 // Returns true when all matches in the list are complete
-func (l *MatchList) MatchesComplete() bool {
+func (l *matchList) MatchesComplete() bool {
 	for _, m := range l.Matches {
 		if !m.HasBye() && !m.IsWalkover() && m.Score == nil {
 			return false
@@ -39,7 +39,7 @@ func (l *MatchList) MatchesComplete() bool {
 }
 
 // Returns true when any of the matches have started
-func (l *MatchList) MatchesStarted() bool {
+func (l *matchList) MatchesStarted() bool {
 	for _, m := range l.Matches {
 		if !m.StartTime.IsZero() {
 			return true
@@ -71,21 +71,22 @@ type EditingPolicy interface {
 	updateEditableMatches()
 }
 
-// A Tournament is a chain of matches and rankings.
-//
-// Every tournament begins with a ranking of entries and
-// ends with a final ranking. What comes in between depends
-// on the tournament mode that is implemented.
-type Tournament interface {
-	// Update the tournament's slots and rankings.
+type RankingUpdater interface {
+	// Updates all rankings and slots going
+	// from the start Ranking in the
+	// dependecy graph
 	Update(start Ranking)
+}
+
+type MatchLister interface {
+	MatchList() *matchList
 }
 
 type BaseTournament[FinalRanking Ranking] struct {
 	// The entries ranking which contains
 	// the starting slots for all participants.
 	Entries Ranking
-	*MatchList
+	*matchList
 	*RankingGraph
 	FinalRanking FinalRanking
 
@@ -115,12 +116,16 @@ func (t *BaseTournament[_]) Id() int {
 	return t.id
 }
 
+func (t *BaseTournament[_]) MatchList() *matchList {
+	return t.matchList
+}
+
 func (t *BaseTournament[FinalRanking]) addTournamentData(
-	matchList *MatchList,
+	matchList *matchList,
 	rankingGraph *RankingGraph,
 	finalRanking FinalRanking,
 ) {
-	t.MatchList = matchList
+	t.matchList = matchList
 	t.RankingGraph = rankingGraph
 	t.FinalRanking = finalRanking
 }
