@@ -144,30 +144,35 @@ type RoundRobinWithdrawalPolicy struct {
 // The specific matches that the player was withdrawn from
 // are returned.
 func (w *RoundRobinWithdrawalPolicy) WithdrawPlayer(player Player) []*Match {
-	withdrawnMatches := w.matchList.MatchesOfPlayer(player)
-
-	for _, m := range withdrawnMatches {
-		m.WithdrawnPlayers = append(m.WithdrawnPlayers, player)
-	}
-
-	return withdrawnMatches
+	withdrawMatches := w.ListWithdrawMatches(player)
+	withdrawFromMatches(player, withdrawMatches)
+	return withdrawMatches
 }
 
 // Attempts to reenter the player into the tournament.
 // On success the specific matches that the player
 // was reentered into are returned.
 func (w *RoundRobinWithdrawalPolicy) ReenterPlayer(player Player) []*Match {
+	reenterMatches := w.ListReenterMatches(player)
+	reenterIntoMatches(player, reenterMatches)
+	return reenterMatches
+}
+
+func (w *RoundRobinWithdrawalPolicy) ListWithdrawMatches(player Player) []*Match {
+	withdrawnMatches := w.matchList.MatchesOfPlayer(player)
+	return withdrawnMatches
+}
+
+// Attempts to reenter the player into the tournament.
+// On success the specific matches that the player
+// was reentered into are returned.
+func (w *RoundRobinWithdrawalPolicy) ListReenterMatches(player Player) []*Match {
 	withdrawnMatches := make([]*Match, 0, 5)
 	for _, m := range w.matchList.Matches {
 		if slices.Contains(m.WithdrawnPlayers, player) {
 			withdrawnMatches = append(withdrawnMatches, m)
 		}
 	}
-
-	for _, m := range withdrawnMatches {
-		m.WithdrawnPlayers = slices.DeleteFunc(m.WithdrawnPlayers, func(p Player) bool { return p == player })
-	}
-
 	return withdrawnMatches
 }
 

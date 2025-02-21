@@ -106,21 +106,39 @@ type GroupKnockoutWithdrawalPolicy struct {
 	knockOut   *BaseTournament[*EliminationRanking]
 }
 
+// Withdraws the given player from the tournament.
+// The specific matches that the player was withdrawn from
+// are returned.
 func (w *GroupKnockoutWithdrawalPolicy) WithdrawPlayer(player Player) []*Match {
+	withdrawMatches := w.ListWithdrawMatches(player)
+	withdrawFromMatches(player, withdrawMatches)
+	return withdrawMatches
+}
+
+// Attempts to reenter the player into the tournament.
+// On success the specific matches that the player
+// was reentered into are returned.
+func (w *GroupKnockoutWithdrawalPolicy) ReenterPlayer(player Player) []*Match {
+	reenterMatches := w.ListReenterMatches(player)
+	reenterIntoMatches(player, reenterMatches)
+	return reenterMatches
+}
+
+func (w *GroupKnockoutWithdrawalPolicy) ListWithdrawMatches(player Player) []*Match {
 	knockOutStarted := w.knockOut.matchList.MatchesStarted()
 	if knockOutStarted {
-		return w.knockOut.WithdrawPlayer(player)
+		return w.knockOut.ListWithdrawMatches(player)
 	} else {
-		return w.groupPhase.WithdrawPlayer(player)
+		return w.groupPhase.ListWithdrawMatches(player)
 	}
 }
 
-func (w *GroupKnockoutWithdrawalPolicy) ReenterPlayer(player Player) []*Match {
+func (w *GroupKnockoutWithdrawalPolicy) ListReenterMatches(player Player) []*Match {
 	knockOutStarted := w.knockOut.matchList.MatchesStarted()
 	if knockOutStarted {
-		return w.knockOut.ReenterPlayer(player)
+		return w.knockOut.ListReenterMatches(player)
 	} else {
-		return w.groupPhase.ReenterPlayer(player)
+		return w.groupPhase.ListReenterMatches(player)
 	}
 }
 

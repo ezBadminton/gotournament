@@ -268,8 +268,23 @@ type EliminationWithdrawalPolicy struct {
 // Withdraws the given player from the tournament.
 // The specific matches that the player was withdrawn from
 // are returned.
-func (e *EliminationWithdrawalPolicy) WithdrawPlayer(player Player) []*Match {
-	playerMatches := e.matchList.MatchesOfPlayer(player)
+func (w *EliminationWithdrawalPolicy) WithdrawPlayer(player Player) []*Match {
+	withdrawMatches := w.ListWithdrawMatches(player)
+	withdrawFromMatches(player, withdrawMatches)
+	return withdrawMatches
+}
+
+// Attempts to reenter the player into the tournament.
+// On success the specific matches that the player
+// was reentered into are returned.
+func (w *EliminationWithdrawalPolicy) ReenterPlayer(player Player) []*Match {
+	reenterMatches := w.ListReenterMatches(player)
+	reenterIntoMatches(player, reenterMatches)
+	return reenterMatches
+}
+
+func (w *EliminationWithdrawalPolicy) ListWithdrawMatches(player Player) []*Match {
+	playerMatches := w.matchList.MatchesOfPlayer(player)
 	var walkoverMatch *Match
 
 	for _, m := range playerMatches {
@@ -283,7 +298,7 @@ func (e *EliminationWithdrawalPolicy) WithdrawPlayer(player Player) []*Match {
 			continue
 		}
 
-		nextMatches := e.eliminationGraph.nextPlayableMatches(m)
+		nextMatches := w.eliminationGraph.nextPlayableMatches(m)
 		nextMatchesStarted := MatchesStarted(nextMatches...)
 
 		walkoverEffective := len(nextMatches) == 0 || nextMatchesStarted
@@ -297,16 +312,12 @@ func (e *EliminationWithdrawalPolicy) WithdrawPlayer(player Player) []*Match {
 	if walkoverMatch == nil {
 		return nil
 	} else {
-		walkoverMatch.WithdrawnPlayers = append(walkoverMatch.WithdrawnPlayers, player)
 		return []*Match{walkoverMatch}
 	}
 }
 
-// Attempts to reenter the player into the tournament.
-// On success the specific matches that the player
-// was reentered into are returned.
-func (e *EliminationWithdrawalPolicy) ReenterPlayer(player Player) []*Match {
-	matches := e.matchList.Matches
+func (w *EliminationWithdrawalPolicy) ListReenterMatches(player Player) []*Match {
+	matches := w.matchList.Matches
 	withdrawnMatches := make([]*Match, 0, 1)
 	for _, m := range matches {
 		if m.IsPlayerWithdrawn(player) {
@@ -316,11 +327,10 @@ func (e *EliminationWithdrawalPolicy) ReenterPlayer(player Player) []*Match {
 
 	reenteredMatches := make([]*Match, 0, len(withdrawnMatches))
 	for _, m := range withdrawnMatches {
-		nextMatches := e.eliminationGraph.nextPlayableMatches(m)
+		nextMatches := w.eliminationGraph.nextPlayableMatches(m)
 		nextMatchesStarted := MatchesStarted(nextMatches...)
 		if !nextMatchesStarted {
 			reenteredMatches = append(reenteredMatches, m)
-			m.WithdrawnPlayers = slices.DeleteFunc(m.WithdrawnPlayers, func(p Player) bool { return p == player })
 		}
 	}
 

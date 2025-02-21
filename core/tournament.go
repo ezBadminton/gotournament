@@ -48,21 +48,6 @@ func (l *matchList) MatchesStarted() bool {
 	return false
 }
 
-// The WithdrawalPolicy dictates how a player can
-// withdraw from a tournament and also if a player
-// would be allowed to reenter.
-type WithdrawalPolicy interface {
-	// Withdraws the given player from the tournament.
-	// The specific matches that the player was withdrawn from
-	// are returned.
-	WithdrawPlayer(player Player) []*Match
-
-	// Attempts to reenter the player into the tournament.
-	// On success the specific matches that the player
-	// was reentered into are returned.
-	ReenterPlayer(player Player) []*Match
-}
-
 type EditingPolicy interface {
 	// Returns the comprehensive list of matches that are editable
 	EditableMatches() []*Match
