@@ -12,7 +12,7 @@ type MatchMetricRanking struct {
 	BaseTieableRanking
 
 	// Each player's metrics which are the basis for the ranks.
-	// The metrics are updated in the UpdateRanks call
+	// The metrics are updated in the updateRanks call
 	Metrics map[Player]*MatchMetrics
 
 	entrySlots []*Slot

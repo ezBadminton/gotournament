@@ -3,11 +3,21 @@ package core
 import "slices"
 
 type MatchMetrics struct {
-	NumMatches, Wins, Losses       int
-	NumSets, SetWins, SetLosses    int
-	PointWins, PointLosses         int
-	SetDifference, PointDifference int
-	Withdrawn                      bool
+	NumMatches int `json:"numMatches"`
+	Wins       int `json:"wins"`
+	Losses     int `json:"losses"`
+
+	NumSets   int `json:"numSets"`
+	SetWins   int `json:"setWins"`
+	SetLosses int `json:"setLosses"`
+
+	PointWins   int `json:"pointWins"`
+	PointLosses int `json:"pointLosses"`
+
+	SetDifference   int `json:"-"`
+	PointDifference int `json:"-"`
+
+	Withdrawn bool `json:"-"`
 }
 
 func (m *MatchMetrics) UpdateDifferences() {

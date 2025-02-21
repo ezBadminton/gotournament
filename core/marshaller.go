@@ -1,7 +1,6 @@
 package core
 
 import (
-	"bytes"
 	"encoding/json"
 	"maps"
 )
@@ -72,6 +71,18 @@ func marshalTieableRanking(ranking TieableRanking) [][]int {
 	return slotIds
 }
 
+func marshalMetrics(ranking *MatchMetricRanking) []*MatchMetrics {
+	slots := ranking.Ranks()
+	metrics := make([]*MatchMetrics, 0, len(slots))
+	for _, s := range slots {
+		if s.Player == nil {
+			continue
+		}
+		metrics = append(metrics, ranking.Metrics[s.Player])
+	}
+	return metrics
+}
+
 func marshalMatchList(matchList *matchList) map[string]any {
 	rounds := make([][]map[string]any, len(matchList.Rounds))
 	for i, round := range matchList.Rounds {
@@ -126,7 +137,8 @@ func marshalRoundRobin(tournament *RoundRobin) map[string]any {
 	ranksAndSlots := marshalRankingsAndSlots(tournament.Entries, tournament.RankingGraph)
 	matchList := marshalMatchList(tournament.matchList)
 	result := map[string]any{
-		"type": "RoundRobin",
+		"type":    "RoundRobin",
+		"metrics": marshalMetrics(tournament.FinalRanking),
 	}
 
 	maps.Copy(result, ranksAndSlots)
@@ -176,13 +188,19 @@ func marshalDoubleElimination(tournamet *DoubleElimination) map[string]any {
 
 func marshalGroupPhase(tournament *GroupPhase) map[string]any {
 	groupMatchLists := make([]any, 0)
+	groupMetrics := make([][]*MatchMetrics, len(tournament.Groups))
 	for _, g := range tournament.Groups {
 		matchList := marshalMatchList(g.matchList)
 		groupMatchLists = append(groupMatchLists, matchList["rounds"])
+
+		metrics := marshalMetrics(g.FinalRanking)
+		groupMetrics = append(groupMetrics, metrics)
 	}
+
 	result := map[string]any{
-		"type":        "GroupPhase",
-		"groupRounds": groupMatchLists,
+		"type":         "GroupPhase",
+		"groupRounds":  groupMatchLists,
+		"groupMetrics": groupMetrics,
 	}
 
 	return result
@@ -226,36 +244,27 @@ func marshalGroupKnockout(tournament *GroupKnockout) map[string]any {
 	return result
 }
 
-func mapToJson(anymap map[string]any) ([]byte, error) {
-	var buf bytes.Buffer
-	encoder := json.NewEncoder(&buf)
-	if err := encoder.Encode(anymap); err != nil {
-		return nil, err
-	}
-	return buf.Bytes(), nil
-}
-
 func (t *SingleElimination) MarshalJSON() ([]byte, error) {
 	anymap := marshalSingleElimination(t)
-	return mapToJson(anymap)
+	return json.Marshal(anymap)
 }
 
 func (t *SingleEliminationWithConsolation) MarshalJSON() ([]byte, error) {
 	anymap := marshalSingleEliminationWithConsolation(t)
-	return mapToJson(anymap)
+	return json.Marshal(anymap)
 }
 
 func (t *RoundRobin) MarshalJSON() ([]byte, error) {
 	anymap := marshalRoundRobin(t)
-	return mapToJson(anymap)
+	return json.Marshal(anymap)
 }
 
 func (t *GroupKnockout) MarshalJSON() ([]byte, error) {
 	anymap := marshalGroupKnockout(t)
-	return mapToJson(anymap)
+	return json.Marshal(anymap)
 }
 
 func (t *DoubleElimination) MarshalJSON() ([]byte, error) {
 	anymap := marshalDoubleElimination(t)
-	return mapToJson(anymap)
+	return json.Marshal(anymap)
 }
