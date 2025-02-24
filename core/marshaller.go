@@ -71,6 +71,18 @@ func marshalTieableRanking(ranking TieableRanking) [][]int {
 	return slotIds
 }
 
+func marshalTies(ties [][]*Slot) [][]int {
+	tieIds := make([][]int, len(ties))
+	for i, tie := range ties {
+		slotIds := make([]int, len(tie))
+		for i, slot := range tie {
+			slotIds[i] = slot.Id
+		}
+		tieIds[i] = slotIds
+	}
+	return tieIds
+}
+
 func marshalMetrics(ranking *MatchMetricRanking) []*MatchMetrics {
 	slots := ranking.Ranks()
 	metrics := make([]*MatchMetrics, 0, len(slots))
@@ -114,6 +126,7 @@ func marshalMatch(match *Match) map[string]any {
 		locationId = match.Location.Id()
 	}
 	result := map[string]any{
+		"id":    match.id,
 		"slot1": match.Slot1.Id,
 		"slot2": match.Slot2.Id,
 		"score": score,
@@ -124,15 +137,29 @@ func marshalMatch(match *Match) map[string]any {
 	return result
 }
 
+func marshalEditableMatches(editingPolicy EditingPolicy) map[string]any {
+	editable := editingPolicy.EditableMatches()
+	editableIds := make([]int, len(editable))
+	for i, match := range editable {
+		editableIds[i] = match.id
+	}
+	result := map[string]any{
+		"editable": editableIds,
+	}
+	return result
+}
+
 func marshalSingleElimination(tournament *SingleElimination) map[string]any {
 	ranksAndSlots := marshalRankingsAndSlots(tournament.Entries, tournament.RankingGraph)
 	matchList := marshalMatchList(tournament.matchList)
+	editable := marshalEditableMatches(tournament)
 	result := map[string]any{
 		"type": "SingleElimination",
 	}
 
 	maps.Copy(result, ranksAndSlots)
 	maps.Copy(result, matchList)
+	maps.Copy(result, editable)
 
 	return result
 }
@@ -140,6 +167,7 @@ func marshalSingleElimination(tournament *SingleElimination) map[string]any {
 func marshalRoundRobin(tournament *RoundRobin) map[string]any {
 	ranksAndSlots := marshalRankingsAndSlots(tournament.Entries, tournament.RankingGraph)
 	matchList := marshalMatchList(tournament.matchList)
+	editable := marshalEditableMatches(tournament)
 	result := map[string]any{
 		"type":    "RoundRobin",
 		"metrics": marshalMetrics(tournament.FinalRanking),
@@ -147,6 +175,7 @@ func marshalRoundRobin(tournament *RoundRobin) map[string]any {
 
 	maps.Copy(result, ranksAndSlots)
 	maps.Copy(result, matchList)
+	maps.Copy(result, editable)
 
 	return result
 }
@@ -154,12 +183,14 @@ func marshalRoundRobin(tournament *RoundRobin) map[string]any {
 func marshalSingleEliminationWithConsolation(tournament *SingleEliminationWithConsolation) map[string]any {
 	ranksAndSlots := marshalRankingsAndSlots(tournament.Entries, tournament.RankingGraph)
 	mainBracket := marshalConsolationBracket(tournament.MainBracket)
+	editable := marshalEditableMatches(tournament)
 	result := map[string]any{
 		"type":        "SingleEliminationWithConsolation",
 		"mainBracket": mainBracket,
 	}
 
 	maps.Copy(result, ranksAndSlots)
+	maps.Copy(result, editable)
 
 	return result
 }
@@ -177,15 +208,17 @@ func marshalConsolationBracket(bracket *ConsolationBracket) map[string]any {
 	return result
 }
 
-func marshalDoubleElimination(tournamet *DoubleElimination) map[string]any {
-	ranksAndSlots := marshalRankingsAndSlots(tournamet.Entries, tournamet.RankingGraph)
-	matchList := marshalMatchList(tournamet.matchList)
+func marshalDoubleElimination(tournament *DoubleElimination) map[string]any {
+	ranksAndSlots := marshalRankingsAndSlots(tournament.Entries, tournament.RankingGraph)
+	matchList := marshalMatchList(tournament.matchList)
+	editable := marshalEditableMatches(tournament)
 	result := map[string]any{
 		"type": "DoubleElimination",
 	}
 
 	maps.Copy(result, ranksAndSlots)
 	maps.Copy(result, matchList)
+	maps.Copy(result, editable)
 
 	return result
 }
@@ -193,18 +226,32 @@ func marshalDoubleElimination(tournamet *DoubleElimination) map[string]any {
 func marshalGroupPhase(tournament *GroupPhase) map[string]any {
 	groupMatchLists := make([]any, 0)
 	groupMetrics := make([][]*MatchMetrics, len(tournament.Groups))
+	groupTies := make([][][]int, len(tournament.Groups))
+	unbrokenGroupTies := make([][][]int, len(tournament.Groups))
 	for _, g := range tournament.Groups {
 		matchList := marshalMatchList(g.matchList)
 		groupMatchLists = append(groupMatchLists, matchList["rounds"])
 
 		metrics := marshalMetrics(g.FinalRanking)
 		groupMetrics = append(groupMetrics, metrics)
+
+		numUntied := g.FinalRanking.RequiredUntiedRanks
+		ties := g.FinalRanking.BlockingTies(numUntied)
+		unbrokenTies := g.FinalRanking.BlockingUnbrokenTies(numUntied)
+		groupTies = append(groupTies, marshalTies(ties))
+		unbrokenGroupTies = append(unbrokenGroupTies, marshalTies(unbrokenTies))
 	}
 
+	ties := tournament.FinalRanking.CrossGroupTies()
+	crossGroupTies := marshalTies(ties)
+
 	result := map[string]any{
-		"type":         "GroupPhase",
-		"groupRounds":  groupMatchLists,
-		"groupMetrics": groupMetrics,
+		"type":              "GroupPhase",
+		"groupRounds":       groupMatchLists,
+		"groupMetrics":      groupMetrics,
+		"groupTies":         groupTies,
+		"unbrokenGroupTies": unbrokenGroupTies,
+		"crossGroupTies":    crossGroupTies,
 	}
 
 	return result
@@ -213,6 +260,7 @@ func marshalGroupPhase(tournament *GroupPhase) map[string]any {
 func marshalGroupKnockout(tournament *GroupKnockout) map[string]any {
 	ranksAndSlots := marshalRankingsAndSlots(tournament.Entries, tournament.RankingGraph)
 	groupPhase := marshalGroupPhase(tournament.GroupPhase)
+	editable := marshalEditableMatches(tournament)
 	var koPhase map[string]any
 	switch ko := tournament.KnockOutTournament.(type) {
 	case *SingleElimination:
@@ -244,6 +292,7 @@ func marshalGroupKnockout(tournament *GroupKnockout) map[string]any {
 	}
 
 	maps.Copy(result, ranksAndSlots)
+	maps.Copy(result, editable)
 
 	return result
 }
