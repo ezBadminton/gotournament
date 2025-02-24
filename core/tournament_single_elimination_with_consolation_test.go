@@ -311,7 +311,7 @@ func TestConsolationEditingPolicy(t *testing.T) {
 	}
 
 	semi1.StartMatch()
-	ep.updateEditableMatches()
+	ep.UpdateEditableMatches()
 
 	editableMatches = ep.EditableMatches()
 

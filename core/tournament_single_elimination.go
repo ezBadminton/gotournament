@@ -228,7 +228,7 @@ func (e *EliminationEditingPolicy) EditableMatches() []*Match {
 }
 
 // Updates the return value of EditableMatches
-func (e *EliminationEditingPolicy) updateEditableMatches() {
+func (e *EliminationEditingPolicy) UpdateEditableMatches() {
 	matches := e.matchList.Matches
 	editable := make([]*Match, 0, len(matches))
 

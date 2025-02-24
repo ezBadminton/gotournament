@@ -314,7 +314,7 @@ func TestSingleEliminationEditingPolicy(t *testing.T) {
 	ml := tournament.matchList
 
 	ep := tournament.EditingPolicy
-	ep.updateEditableMatches()
+	ep.UpdateEditableMatches()
 
 	editableMatches := ep.EditableMatches()
 	eq1 := len(editableMatches) == 0
@@ -325,7 +325,7 @@ func TestSingleEliminationEditingPolicy(t *testing.T) {
 	ml.Matches[0].StartMatch()
 	ml.Matches[0].EndMatch(NewScore(1, 0))
 	tournament.Update(nil)
-	ep.updateEditableMatches()
+	ep.UpdateEditableMatches()
 
 	editableMatches = ep.EditableMatches()
 	eq1 = ml.Matches[0] == editableMatches[0]
@@ -338,7 +338,7 @@ func TestSingleEliminationEditingPolicy(t *testing.T) {
 		m.EndMatch(NewScore(1, 0))
 	}
 	tournament.Update(nil)
-	ep.updateEditableMatches()
+	ep.UpdateEditableMatches()
 
 	editableMatches = ep.EditableMatches()
 	eq1 = slices.Equal(editableMatches, ml.Rounds[0].Matches)
@@ -348,7 +348,7 @@ func TestSingleEliminationEditingPolicy(t *testing.T) {
 
 	ml.Rounds[1].Matches[0].StartMatch()
 	tournament.Update(nil)
-	ep.updateEditableMatches()
+	ep.UpdateEditableMatches()
 
 	editableMatches = ep.EditableMatches()
 	eq1 = slices.Contains(editableMatches, ml.Rounds[0].Matches[0])

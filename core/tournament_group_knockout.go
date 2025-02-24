@@ -86,13 +86,13 @@ type GroupKnockoutEditingPolicy struct {
 	knockOut        *BaseTournament[*EliminationRanking]
 }
 
-func (e *GroupKnockoutEditingPolicy) updateEditableMatches() {
+func (e *GroupKnockoutEditingPolicy) UpdateEditableMatches() {
 	knockOutStarted := e.knockOut.matchList.MatchesStarted()
 	if knockOutStarted {
-		e.knockOut.updateEditableMatches()
+		e.knockOut.UpdateEditableMatches()
 		e.editableMatches = e.knockOut.EditableMatches()
 	} else {
-		e.groupPhase.updateEditableMatches()
+		e.groupPhase.UpdateEditableMatches()
 		e.editableMatches = e.groupPhase.EditableMatches()
 	}
 }

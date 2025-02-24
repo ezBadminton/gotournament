@@ -122,7 +122,7 @@ func (e *RoundRobinEditingPolicy) EditableMatches() []*Match {
 }
 
 // Updates the return value of EditableMatches
-func (e *RoundRobinEditingPolicy) updateEditableMatches() {
+func (e *RoundRobinEditingPolicy) UpdateEditableMatches() {
 	editableMatches := make([]*Match, 0, len(e.matches))
 	for _, m := range e.matches {
 		winner, _ := m.GetWinner()

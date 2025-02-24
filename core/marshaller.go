@@ -109,13 +109,17 @@ func marshalMatch(match *Match) map[string]any {
 			match.Score.Points2(),
 		)
 	}
+	var locationId string
+	if match.Location != nil {
+		locationId = match.Location.Id()
+	}
 	result := map[string]any{
 		"slot1": match.Slot1.Id,
 		"slot2": match.Slot2.Id,
 		"score": score,
 		"start": match.StartTime.UnixMilli(),
 		"end":   match.EndTime.UnixMilli(),
-		"loc":   match.Location.Id(),
+		"loc":   locationId,
 	}
 	return result
 }

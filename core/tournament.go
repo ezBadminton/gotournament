@@ -53,7 +53,7 @@ type EditingPolicy interface {
 	EditableMatches() []*Match
 
 	// Updates the return value of EditableMatches
-	updateEditableMatches()
+	UpdateEditableMatches()
 }
 
 type RankingUpdater interface {
@@ -94,7 +94,7 @@ func (t *BaseTournament[_]) Update(start Ranking) {
 		}
 	}
 
-	t.EditingPolicy.updateEditableMatches()
+	t.EditingPolicy.UpdateEditableMatches()
 }
 
 func (t *BaseTournament[_]) Id() int {
