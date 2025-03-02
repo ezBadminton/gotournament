@@ -164,7 +164,7 @@ func (m *Match) ContainsPlayer(player Player) bool {
 func (m *Match) IsPlayerWithdrawn(player Player) bool {
 	withdrawnSlots := m.WithdrawnSlots()
 	for _, s := range withdrawnSlots {
-		if s.Player == player {
+		if s.Player.Id() == player.Id() {
 			return true
 		}
 	}
