@@ -56,21 +56,21 @@ func NewScoreSettings(
 	return scoreSettings, nil
 }
 
-var _ core.Score = (*score)(nil)
+var _ core.Score = (*Score)(nil)
 
-type score struct {
+type Score struct {
 	a, b []int
 }
 
-func (s *score) Points1() []int {
+func (s *Score) Points1() []int {
 	return s.a
 }
 
-func (s *score) Points2() []int {
+func (s *Score) Points2() []int {
 	return s.b
 }
 
-func (s *score) GetWinner() (int, error) {
+func (s *Score) GetWinner() (int, error) {
 	setWins := 0
 	for i := range len(s.a) {
 		if s.a[i] > s.b[i] {
@@ -91,8 +91,8 @@ func (s *score) GetWinner() (int, error) {
 	return -1, ErrUndetermined
 }
 
-func (s *score) Invert() core.Score {
-	score := &score{
+func (s *Score) Invert() core.Score {
+	score := &Score{
 		a: s.b,
 		b: s.a,
 	}
@@ -102,7 +102,7 @@ func (s *score) Invert() core.Score {
 func NewScore(
 	a, b []int,
 	settings ScoreSettings,
-) (*score, error) {
+) (*Score, error) {
 	switch {
 	case len(a) == 0 || len(b) == 0:
 		return nil, ErrEmpty
@@ -152,14 +152,14 @@ func NewScore(
 		return nil, ErrEqualSetWins
 	}
 
-	return &score{a, b}, nil
+	return &Score{a, b}, nil
 }
 
-func MaxScore(settings ScoreSettings) *score {
+func MaxScore(settings ScoreSettings) *Score {
 	a := make([]int, settings.WinningSets)
 	b := make([]int, settings.WinningSets)
 	for i := range settings.WinningSets {
 		a[i] = settings.WinningPoints
 	}
-	return &score{a, b}
+	return &Score{a, b}
 }

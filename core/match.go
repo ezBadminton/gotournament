@@ -121,10 +121,10 @@ func (m *Match) WithdrawnSlots() []*Slot {
 
 	withdrawn1, withdrawn2 := false, false
 	for _, p := range m.WithdrawnPlayers {
-		if p == m.Slot1.Player {
+		if p.Id() == m.Slot1.Player.Id() {
 			withdrawn1 = true
 		}
-		if p == m.Slot2.Player {
+		if p.Id() == m.Slot2.Player.Id() {
 			withdrawn2 = true
 		}
 	}
@@ -155,7 +155,8 @@ func (m *Match) HasDrawnBye() bool {
 }
 
 func (m *Match) ContainsPlayer(player Player) bool {
-	return m.Slot1.Player == player || m.Slot2.Player == player
+	id := player.Id()
+	return m.Slot1.Player.Id() == id || m.Slot2.Player.Id() == id
 }
 
 // Returns true when the given player has withdrawn

@@ -169,7 +169,11 @@ func (w *RoundRobinWithdrawalPolicy) ListWithdrawMatches(player Player) []*Match
 func (w *RoundRobinWithdrawalPolicy) ListReenterMatches(player Player) []*Match {
 	withdrawnMatches := make([]*Match, 0, 5)
 	for _, m := range w.matchList.Matches {
-		if slices.Contains(m.WithdrawnPlayers, player) {
+		isWithdrawn := slices.ContainsFunc(
+			m.WithdrawnPlayers,
+			func(p Player) bool { return p.Id() == player.Id() },
+		)
+		if isWithdrawn {
 			withdrawnMatches = append(withdrawnMatches, m)
 		}
 	}

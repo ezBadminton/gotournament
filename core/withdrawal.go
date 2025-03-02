@@ -33,6 +33,6 @@ func withdrawFromMatches(player Player, withdrawMatches []*Match) {
 
 func reenterIntoMatches(player Player, reenterMatches []*Match) {
 	for _, m := range reenterMatches {
-		m.WithdrawnPlayers = slices.DeleteFunc(m.WithdrawnPlayers, func(p Player) bool { return p == player })
+		m.WithdrawnPlayers = slices.DeleteFunc(m.WithdrawnPlayers, func(p Player) bool { return p.Id() == player.Id() })
 	}
 }
