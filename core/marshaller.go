@@ -2,6 +2,7 @@ package core
 
 import (
 	"maps"
+	"slices"
 )
 
 type TournamentMarshaller struct {
@@ -126,11 +127,18 @@ func (m *TournamentMarshaller) marshalMatch(match *Match) map[string]any {
 	return result
 }
 
-func (m *TournamentMarshaller) marshalEditableMatches(editingPolicy EditingPolicy) map[string]any {
+type editingPolicyAndMatchList interface {
+	EditingPolicy
+	MatchLister
+}
+
+func (m *TournamentMarshaller) marshalEditableMatches(editingPolicy editingPolicyAndMatchList) map[string]any {
 	editable := editingPolicy.EditableMatches()
-	editableIds := make([]int, len(editable))
+	editableIds := make([]string, len(editable))
+	matchList := editingPolicy.MatchList().Matches
 	for i, match := range editable {
-		editableIds[i] = match.id
+		matchI := slices.IndexFunc(matchList, func(m *Match) bool { return m.id == match.id })
+		editableIds[i] = m.getMatchId(matchI)
 	}
 	result := map[string]any{
 		"editable": editableIds,
