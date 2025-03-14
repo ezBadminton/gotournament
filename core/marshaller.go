@@ -2,11 +2,19 @@ package core
 
 import (
 	"maps"
-	"slices"
 )
 
 type TournamentMarshaller struct {
-	getMatchId func(i int) string
+	idMap map[int]string
+}
+
+func newTournamentMarshaller(tournament MatchLister, getMatchId func(i int) string) TournamentMarshaller {
+	idMap := make(map[int]string)
+	matches := tournament.MatchList().Matches
+	for i, m := range matches {
+		idMap[m.id] = getMatchId(i)
+	}
+	return TournamentMarshaller{idMap}
 }
 
 func (m *TournamentMarshaller) marshalEntriesAndFinal(entries, finalRanking Ranking) map[string]any {
@@ -97,12 +105,10 @@ func (m *TournamentMarshaller) marshalMatchList(matchList *matchList) map[string
 
 func (m *TournamentMarshaller) marshalRoundList(rounds [][]*Match) map[string]any {
 	matches := make([][]string, len(rounds))
-	matchI := 0
 	for i, round := range rounds {
 		roundMatches := make([]string, len(round))
-		for i := range round {
-			roundMatches[i] = m.getMatchId(matchI)
-			matchI += 1
+		for i, match := range round {
+			roundMatches[i] = m.idMap[match.id]
 		}
 		matches[i] = roundMatches
 	}
@@ -135,10 +141,8 @@ type editingPolicyAndMatchList interface {
 func (m *TournamentMarshaller) marshalEditableMatches(editingPolicy editingPolicyAndMatchList) map[string]any {
 	editable := editingPolicy.EditableMatches()
 	editableIds := make([]string, len(editable))
-	matchList := editingPolicy.MatchList().Matches
 	for i, match := range editable {
-		matchI := slices.IndexFunc(matchList, func(m *Match) bool { return m.id == match.id })
-		editableIds[i] = m.getMatchId(matchI)
+		editableIds[i] = m.idMap[match.id]
 	}
 	result := map[string]any{
 		"editable": editableIds,
@@ -220,7 +224,7 @@ func (m *TournamentMarshaller) marshalDoubleElimination(tournament *DoubleElimin
 		"type":         "DoubleElimination",
 		"winnerRounds": winnerMatchList["rounds"],
 		"loserRounds":  loserMatchList["rounds"],
-		"final":        m.getMatchId(len(tournament.matchList.Matches) - 1),
+		"final":        m.idMap[tournament.final.id],
 	}
 
 	maps.Copy(result, editable)
@@ -319,26 +323,26 @@ func (m *Match) ToMap() map[string]any {
 }
 
 func (t *SingleElimination) ToMap(getMatchId func(int) string) map[string]any {
-	marshaller := TournamentMarshaller{getMatchId}
+	marshaller := newTournamentMarshaller(t, getMatchId)
 	return marshaller.marshalSingleElimination(t)
 }
 
 func (t *SingleEliminationWithConsolation) ToMap(getMatchId func(int) string) map[string]any {
-	marshaller := TournamentMarshaller{getMatchId}
+	marshaller := newTournamentMarshaller(t, getMatchId)
 	return marshaller.marshalSingleEliminationWithConsolation(t)
 }
 
 func (t *RoundRobin) ToMap(getMatchId func(int) string) map[string]any {
-	marshaller := TournamentMarshaller{getMatchId}
+	marshaller := newTournamentMarshaller(t, getMatchId)
 	return marshaller.marshalRoundRobin(t)
 }
 
 func (t *GroupKnockout) ToMap(getMatchId func(int) string) map[string]any {
-	marshaller := TournamentMarshaller{getMatchId}
+	marshaller := newTournamentMarshaller(t, getMatchId)
 	return marshaller.marshalGroupKnockout(t)
 }
 
 func (t *DoubleElimination) ToMap(getMatchId func(int) string) map[string]any {
-	marshaller := TournamentMarshaller{getMatchId}
+	marshaller := newTournamentMarshaller(t, getMatchId)
 	return marshaller.marshalDoubleElimination(t)
 }

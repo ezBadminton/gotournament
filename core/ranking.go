@@ -172,6 +172,9 @@ func (r *BaseTieableRanking) BlockingUnbrokenTies(topN int) [][]*Slot {
 }
 
 func topNBlockingTies(ties [][]*Slot, topN int) [][]*Slot {
+	if topN == 0 {
+		return make([][]*Slot, 0)
+	}
 	blockingTies := make([][]*Slot, 0, topN-1)
 	rankIndex := 0
 
