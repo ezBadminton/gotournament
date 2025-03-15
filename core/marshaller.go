@@ -28,7 +28,7 @@ func (m *TournamentMarshaller) marshalEntriesAndFinal(entries, finalRanking Rank
 func (m *TournamentMarshaller) marshalSlot(slot *Slot) map[string]any {
 	var occupant string
 	if slot.IsBye() {
-		if slot.Bye.Drawn {
+		if slot.Bye != nil && slot.Bye.Drawn {
 			occupant = "db"
 		} else {
 			occupant = "b"
@@ -71,16 +71,16 @@ func (m *TournamentMarshaller) marshalTieableRanking(ranking TieableRanking) [][
 	return slotIds
 }
 
-func (m *TournamentMarshaller) marshalTies(ties [][]*Slot) [][]int {
-	tieIds := make([][]int, len(ties))
+func (m *TournamentMarshaller) marshalTies(ties [][]*Slot) [][]map[string]any {
+	marshalledTies := make([][]map[string]any, len(ties))
 	for i, tie := range ties {
-		slotIds := make([]int, len(tie))
+		slots := make([]map[string]any, len(tie))
 		for i, slot := range tie {
-			slotIds[i] = slot.Id
+			slots[i] = m.marshalSlot(slot)
 		}
-		tieIds[i] = slotIds
+		marshalledTies[i] = slots
 	}
-	return tieIds
+	return marshalledTies
 }
 
 func (m *TournamentMarshaller) marshalMetrics(ranking *MatchMetricRanking) []*MatchMetrics {
@@ -127,7 +127,7 @@ func (m *TournamentMarshaller) marshalMatch(match *Match) map[string]any {
 		"walkover": match.IsWalkover(),
 	}
 	winner, err := match.GetWinner()
-	if err == nil {
+	if err == nil && winner.Player != nil {
 		result["winner"] = winner.Player.Id()
 	}
 	return result
