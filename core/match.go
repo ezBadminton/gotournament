@@ -156,7 +156,12 @@ func (m *Match) HasDrawnBye() bool {
 
 func (m *Match) ContainsPlayer(player Player) bool {
 	id := player.Id()
-	return m.Slot1.Player.Id() == id || m.Slot2.Player.Id() == id
+	for slot := range m.Slots {
+		if slot.Player != nil && slot.Player.Id() == id {
+			return true
+		}
+	}
+	return false
 }
 
 // Returns true when the given player has withdrawn
