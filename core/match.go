@@ -121,10 +121,10 @@ func (m *Match) WithdrawnSlots() []*Slot {
 
 	withdrawn1, withdrawn2 := false, false
 	for _, p := range m.WithdrawnPlayers {
-		if p.Id() == m.Slot1.Player.Id() {
+		if m.Slot1.Player != nil && p.Id() == m.Slot1.Player.Id() {
 			withdrawn1 = true
 		}
-		if p.Id() == m.Slot2.Player.Id() {
+		if m.Slot2.Player != nil && p.Id() == m.Slot2.Player.Id() {
 			withdrawn2 = true
 		}
 	}
