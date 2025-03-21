@@ -34,7 +34,7 @@ func (r *GroupKnockoutRanking) updateRanks() {
 
 	knockOutRanks := r.knockOut.FinalRanking.TiedRanks()
 
-	ranks := slices.Concat(combinedGroupRanks, knockOutRanks)
+	ranks := slices.Concat(knockOutRanks, combinedGroupRanks)
 	ranks = RemoveDoubleRanks(ranks)
 
 	r.ProcessUpdate(ranks)
