@@ -77,13 +77,13 @@ func TestGroupKnockoutQualification(t *testing.T) {
 
 	firstKnockOutRound := tournament.KnockOut.Rounds[0]
 	m := firstKnockOutRound.Matches[0]
-	eq1 = m.Slot1.Player == players[8] && m.Slot2.Player == players[6]
+	eq1 = m.Slot1.Player == players[8] && m.Slot2.Player == players[5]
 	m = firstKnockOutRound.Matches[1]
-	eq2 := m.Slot1.Player == players[11] && m.Slot2.Player == players[5]
+	eq2 := m.Slot1.Player == players[11] && m.Slot2.Player == players[6]
 	m = firstKnockOutRound.Matches[2]
-	eq3 := m.Slot1.Player == players[9] && m.Slot2.Player == players[7]
+	eq3 := m.Slot1.Player == players[9] && m.Slot2.Player == players[4]
 	m = firstKnockOutRound.Matches[3]
-	eq4 := m.Slot1.Player == players[10] && m.Slot2.Player == players[4]
+	eq4 := m.Slot1.Player == players[10] && m.Slot2.Player == players[7]
 	if !eq1 || !eq2 || !eq3 || !eq4 {
 		t.Fatal("The qualified players are not seeded correctly in the knockout")
 	}
@@ -122,11 +122,11 @@ func TestGroupKnockoutUnbalancedQualifications(t *testing.T) {
 	m := knockOutMatches[0]
 	eq1 := m.Slot1.Player == players[11] && m.Slot2.IsBye()
 	m = knockOutMatches[1]
-	eq2 := m.Slot1.Player == players[9] && m.Slot2.Player == players[7]
+	eq2 := m.Slot1.Player == players[7] && m.Slot2.Player == players[8]
 	m = knockOutMatches[2]
 	eq3 := m.Slot1.Player == players[10] && m.Slot2.IsBye()
 	m = knockOutMatches[3]
-	eq4 := m.Slot1.Player == players[6] && m.Slot2.Player == players[8]
+	eq4 := m.Slot1.Player == players[9] && m.Slot2.Player == players[6]
 	m = knockOutMatches[4]
 	eq5 := m.Slot1.Player == players[11] && m.Slot2.Player == nil
 	m = knockOutMatches[5]
