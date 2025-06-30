@@ -74,6 +74,11 @@ func (r *GroupQualificationRanking) splitQualifications(qualifications []*groupQ
 		qual.inPool = true
 	}
 
+	originalSeeds := make(map[*groupQualification]int, len(qualifications))
+	for i, qual := range qualifications {
+		originalSeeds[qual] = i
+	}
+
 	numQuals := len(qualifications)
 	numRounds := getNumRounds(numQuals)
 	seedMatchups := arrangeSeeds(numRounds)
@@ -97,8 +102,8 @@ func (r *GroupQualificationRanking) splitQualifications(qualifications []*groupQ
 	upperGroups := make(map[int]int)
 	lowerGroups := make(map[int]int)
 
-	upper := make([]*groupQualification, numQuals)
-	lower := make([]*groupQualification, numQuals)
+	upper := make([]*groupQualification, 0, numQuals/2)
+	lower := make([]*groupQualification, 0, numQuals/2)
 
 	for _, seed := range upperSeeds {
 		qualification := r.pickSeedWithGroupConstraint(qualifications, seed, upperGroups)
@@ -106,7 +111,7 @@ func (r *GroupQualificationRanking) splitQualifications(qualifications []*groupQ
 		if group >= 0 {
 			upperGroups[group] = upperGroups[group] + 1
 		}
-		upper[seed] = qualification
+		upper = append(upper, qualification)
 	}
 
 	for _, seed := range lowerSeeds {
@@ -115,11 +120,11 @@ func (r *GroupQualificationRanking) splitQualifications(qualifications []*groupQ
 		if group >= 0 {
 			lowerGroups[group] = lowerGroups[group] + 1
 		}
-		lower[seed] = qualification
+		lower = append(lower, qualification)
 	}
 
-	upper = slices.DeleteFunc(upper, func(e *groupQualification) bool { return e == nil })
-	lower = slices.DeleteFunc(lower, func(e *groupQualification) bool { return e == nil })
+	slices.SortFunc(upper, func(a, b *groupQualification) int { return cmp.Compare(originalSeeds[a], originalSeeds[b]) })
+	slices.SortFunc(lower, func(a, b *groupQualification) int { return cmp.Compare(originalSeeds[a], originalSeeds[b]) })
 
 	return upper, lower
 }
