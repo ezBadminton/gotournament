@@ -293,12 +293,15 @@ func (m *TournamentMarshaller) marshalGroupKnockout(tournament *GroupKnockout) m
 		}
 		maps.Copy(koPhase, ranks)
 	case *DoubleElimination:
-		matchList := m.marshalMatchList(ko.matchList)
+		winnerMatchList := m.marshalMatchList(ko.WinnerBracket.matchList)
+		loserMatchList := m.marshalRoundList(ko.loserRounds)
 		ranks := m.marshalEntriesAndFinal(ko.Entries, ko.FinalRanking)
 		koPhase = map[string]any{
-			"type": "DoubleElimination",
+			"type":         "DoubleElimination",
+			"winnerRounds": winnerMatchList["rounds"],
+			"loserRounds":  loserMatchList["rounds"],
+			"final":        m.idMap[ko.final.id],
 		}
-		maps.Copy(koPhase, matchList)
 		maps.Copy(koPhase, ranks)
 	default:
 		panic("group knockout marshaller: unknown ko phase tournament type")
