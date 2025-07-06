@@ -22,6 +22,8 @@ type GroupKnockout struct {
 	GroupPhase         *GroupPhase
 	KnockOut           *BaseTournament[*EliminationRanking]
 	KnockOutTournament KnockOutTournament
+
+	qualificationRanking *GroupQualificationRanking
 }
 
 func (t *GroupKnockout) initTournament(
@@ -50,9 +52,9 @@ func (t *GroupKnockout) initTournament(
 	t.GroupPhase = newGroupPhase(entries, numGroups, numQualifications, walkoverScore, rankingGraph)
 
 	groupPhaseRanking := t.GroupPhase.FinalRanking
-	qualificationRanking := NewGroupQualificationRanking(groupPhaseRanking, rankingGraph)
+	t.qualificationRanking = NewGroupQualificationRanking(groupPhaseRanking, rankingGraph)
 
-	knockOutTournament, err := knockoutBuilder(qualificationRanking, rankingGraph)
+	knockOutTournament, err := knockoutBuilder(t.qualificationRanking, rankingGraph)
 	if err != nil {
 		return err
 	}
@@ -78,6 +80,10 @@ func (t *GroupKnockout) createMatchList() *matchList {
 	rounds := slices.Concat(ml1.Rounds, ml2.Rounds)
 
 	return &matchList{Matches: matches, Rounds: rounds}
+}
+
+func (t *GroupKnockout) OverrideQualifications(override []Player) {
+	t.qualificationRanking.qualificationOverride = override
 }
 
 type GroupKnockoutEditingPolicy struct {

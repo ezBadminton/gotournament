@@ -10,9 +10,34 @@ type GroupQualificationRanking struct {
 
 	source     *GroupPhaseRanking
 	placements []*BlockingPlacement
+
+	// This can be set to override the automatic knock out
+	// qualification arrangement
+	qualificationOverride []Player
 }
 
 func (r *GroupQualificationRanking) updateRanks() {
+	if len(r.qualificationOverride) == len(r.placements) {
+		r.overrideUpdate()
+	} else {
+		r.autoUpdate()
+	}
+}
+
+func (r *GroupQualificationRanking) overrideUpdate() {
+	sourceRanks := make(map[string]int)
+	for i, slot := range r.source.Ranks() {
+		sourceRanks[slot.Player.Id()] = i
+	}
+
+	for i, placement := range r.placements {
+		placement.blocking = !r.source.QualificationComplete
+		playerId := r.qualificationOverride[i].Id()
+		placement.place = sourceRanks[playerId]
+	}
+}
+
+func (r *GroupQualificationRanking) autoUpdate() {
 	seeds := r.arrangeKnockOutSeeds()
 
 	for i, placement := range r.placements {

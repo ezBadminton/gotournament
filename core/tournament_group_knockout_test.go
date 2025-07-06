@@ -175,6 +175,51 @@ func TestGroupKnockoutContestedQualifications(t *testing.T) {
 	}
 }
 
+func TestGroupKnockoutQualificationOverride(t *testing.T) {
+	players, err := PlayerSlice(10)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	entries := NewConstantRanking(players)
+	tournament, _ := NewGroupKnockout(
+		entries,
+		NewGroupKnockoutSingleElimination,
+		2,
+		4,
+		NewScore(42, 0),
+	)
+
+	for _, m := range tournament.GroupPhase.Matches {
+		p1 := slices.Index(players, m.Slot1.Player)
+		p2 := slices.Index(players, m.Slot2.Player)
+		var score Score = NewScore(max(p1, p2)+1, 0)
+		if p2 < p1 {
+			score = score.Invert()
+		}
+
+		m.StartMatch()
+		m.EndMatch(score)
+	}
+
+	tournament.OverrideQualifications([]Player{
+		players[1],
+		players[0],
+		players[8],
+		players[2],
+	})
+	tournament.Update(nil)
+
+	knockOutEntrySlots := tournament.KnockOut.Entries.Ranks()
+	eq1 := knockOutEntrySlots[0].Player == players[1]
+	eq2 := knockOutEntrySlots[1].Player == players[0]
+	eq3 := knockOutEntrySlots[2].Player == players[8]
+	eq4 := knockOutEntrySlots[3].Player == players[2]
+	if !eq1 || !eq2 || !eq3 || !eq4 {
+		t.Fatal("The qualified players are not the overridden ones")
+	}
+}
+
 func TestGroupKnockoutEditingPolicy(t *testing.T) {
 	players, err := PlayerSlice(8)
 	if err != nil {
