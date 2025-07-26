@@ -136,6 +136,53 @@ func TestGroupKnockoutUnbalancedQualifications(t *testing.T) {
 	}
 }
 
+func TestGroupKnockoutUnbalancedGroupSize(t *testing.T) {
+	players, err := PlayerSlice(10)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	entries := NewConstantRanking(players)
+	tournament, _ := NewGroupKnockout(
+		entries,
+		NewGroupKnockoutSingleElimination,
+		3,
+		6,
+		NewScore(42, 0),
+	)
+
+	for _, m := range tournament.Matches[:18] {
+		p1 := slices.Index(players, m.Slot1.Player)
+		p2 := slices.Index(players, m.Slot2.Player)
+		var score Score = NewScore(max(p1, p2)+1, 0)
+		if p2 > p1 {
+			score = score.Invert()
+		}
+
+		m.StartMatch()
+		m.EndMatch(score)
+	}
+	tournament.Update(nil)
+
+	knockOutMatches := tournament.KnockOut.Matches
+
+	m := knockOutMatches[0]
+	eq1 := m.Slot1.Player == players[9] && m.Slot2.IsBye()
+	m = knockOutMatches[1]
+	eq2 := m.Slot1.Player == players[5] && m.Slot2.Player == players[4]
+	m = knockOutMatches[2]
+	eq3 := m.Slot1.Player == players[6] && m.Slot2.IsBye()
+	m = knockOutMatches[3]
+	eq4 := m.Slot1.Player == players[7] && m.Slot2.Player == players[8]
+	m = knockOutMatches[4]
+	eq5 := m.Slot1.Player == players[9] && m.Slot2.Player == nil
+	m = knockOutMatches[5]
+	eq6 := m.Slot1.Player == players[6] && m.Slot2.Player == nil
+	if !eq1 || !eq2 || !eq3 || !eq4 || !eq5 || !eq6 {
+		t.Fatal("The qualified players are not seeded correctly in the knockout")
+	}
+}
+
 func TestGroupKnockoutContestedQualifications(t *testing.T) {
 	players, err := PlayerSlice(12)
 	if err != nil {

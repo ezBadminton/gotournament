@@ -9,6 +9,7 @@ type GroupQualificationRanking struct {
 	BaseRanking
 
 	source     *GroupPhaseRanking
+	preSeeds   map[int]int
 	placements []*BlockingPlacement
 
 	// This can be set to override the automatic knock out
@@ -80,9 +81,9 @@ func (r *GroupQualificationRanking) arrangeKnockOutSeeds() []int {
 
 	for i, matchup := range matchups {
 		seedMatchup := seedMatchups[i]
-		seeds[seedMatchup.seed1] = slices.Index(qualifications, matchup[0])
+		seeds[seedMatchup.seed1] = r.groupPhaseRankOfQualification(matchup[0], qualifications)
 		if !matchup[1].isBye {
-			seeds[seedMatchup.seed2] = slices.Index(qualifications, matchup[1])
+			seeds[seedMatchup.seed2] = r.groupPhaseRankOfQualification(matchup[1], qualifications)
 		}
 	}
 
@@ -262,9 +263,29 @@ func (r *GroupQualificationRanking) createGroupQualifications() []*groupQualific
 
 		qualifications = append(
 			qualifications,
-			&groupQualification{group: group, place: numUncontested},
+			&groupQualification{
+				group:       group,
+				place:       numUncontested,
+				isContested: true,
+			},
 		)
 	}
+
+	slices.SortFunc(qualifications, func(a, b *groupQualification) int {
+		if a.place != b.place {
+			return cmp.Compare(a.place, b.place)
+		}
+		if a.group == b.group {
+			return 0
+		}
+		if a.group == -1 {
+			return 1
+		}
+		if b.group == -1 {
+			return -1
+		}
+		return cmp.Compare(r.preSeeds[a.group], r.preSeeds[b.group])
+	})
 
 	return qualifications
 }
@@ -280,10 +301,63 @@ func (r *GroupQualificationRanking) groupOfSlot(slot *Slot) int {
 	return -1
 }
 
+// Returns the rank of the given qualification in the
+// source group phase ranking
+func (r *GroupQualificationRanking) groupPhaseRankOfQualification(
+	qualification *groupQualification,
+	qualifications []*groupQualification,
+) int {
+	if qualification.isContested {
+		// Contested ranks are sorted by match metrics
+		return slices.Index(qualifications, qualification)
+	} else {
+		// Uncontested ranks are fixed by their group and place index.
+		// Can not be resolved by their index in the qualifications list
+		// because those are reordered to accomodate unbalanced group sizes
+		numGroups := len(r.source.groups)
+		return qualification.place*numGroups + qualification.group
+	}
+}
+
+// Returns a "pre-seed" for each group that will influence the seeds of
+// the teams who qualify for the knock out phase from that group.
+// By default the pre-seeds match the group index. When the amount of teams
+// per group is unequal then the groups with more players get better seeds.
+// The returned map maps group index -> group pre-seed
+func preseedGroups(groups []*RoundRobin) map[int]int {
+	groups = slices.Clone(groups)
+
+	indices := make(map[*RoundRobin]int)
+	for i, group := range groups {
+		indices[group] = i
+	}
+
+	slices.SortFunc(groups, func(a, b *RoundRobin) int {
+		sizeA := len(a.Entries.Ranks())
+		sizeB := len(b.Entries.Ranks())
+
+		if sizeA < sizeB {
+			return 1
+		} else if sizeB < sizeA {
+			return -1
+		} else {
+			return cmp.Compare(indices[a], indices[b])
+		}
+	})
+
+	preSeeds := make(map[int]int)
+	for i, group := range groups {
+		preSeeds[indices[group]] = i
+	}
+
+	return preSeeds
+}
+
 type groupQualification struct {
 	group, place int
 	isBye        bool
 	inPool       bool
+	isContested  bool
 }
 
 func NewGroupQualificationRanking(source *GroupPhaseRanking, rankingGraph *RankingGraph) *GroupQualificationRanking {
@@ -298,10 +372,13 @@ func NewGroupQualificationRanking(source *GroupPhaseRanking, rankingGraph *Ranki
 		slots = append(slots, NewPlacementSlot(p))
 	}
 
+	preSeeds := preseedGroups(source.groups)
+
 	baseRanking := NewSlotRanking(slots)
 	ranking := &GroupQualificationRanking{
 		BaseRanking: *baseRanking,
 		source:      source,
+		preSeeds:    preSeeds,
 		placements:  placements,
 	}
 	ranking.addDependantSlots(slots...)
