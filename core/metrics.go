@@ -25,32 +25,56 @@ func (m *MatchMetrics) UpdateDifferences() {
 	m.PointDifference = m.PointWins - m.PointLosses
 }
 
+// Add the other match metrics to this one
+func (m *MatchMetrics) Add(other *MatchMetrics) {
+	m.NumMatches += other.NumMatches
+	m.Wins += other.Wins
+	m.Losses += other.Losses
+
+	m.NumSets += other.NumSets
+	m.SetWins += other.SetWins
+	m.SetLosses += other.SetLosses
+
+	m.PointWins += other.PointWins
+	m.PointLosses += other.PointLosses
+
+	m.UpdateDifferences()
+}
+
+type baseMatchMetricSource struct {
+	matches       []*Match
+	walkoverScore Score
+}
+
 // Creates a MatchMetrics struct for each player in the matches.
 // If the players slice is not nil/empty only the matches where both
 // opponents are in the slice are counted.
-func CreateMetrics(
-	matches []*Match,
+func (s *baseMatchMetricSource) CreateMetrics(
 	players []Player,
-	walkoverScore Score,
 ) map[Player]*MatchMetrics {
 	metrics := make(map[Player]*MatchMetrics)
+	s.extractMatchMetricsFromSlice(s.matches, players, metrics)
+	return metrics
+}
 
-	for _, m := range matches {
-		extractMatchMetrics(m, players, metrics, walkoverScore)
+func (s *baseMatchMetricSource) extractMatchMetricsFromSlice(
+	matches []*Match,
+	players []Player,
+	metrics map[Player]*MatchMetrics,
+) {
+	for _, match := range matches {
+		s.extractMatchMetrics(match, players, metrics)
 	}
 
 	for _, m := range metrics {
 		m.UpdateDifferences()
 	}
-
-	return metrics
 }
 
-func extractMatchMetrics(
+func (s *baseMatchMetricSource) extractMatchMetrics(
 	match *Match,
 	players []Player,
 	metrics map[Player]*MatchMetrics,
-	walkoverScore Score,
 ) {
 	p1 := match.Slot1.Player
 	p2 := match.Slot2.Player
@@ -95,11 +119,12 @@ func extractMatchMetrics(
 
 	score := match.Score
 	if score == nil {
-		if winnerSlot == match.Slot1 {
-			score = walkoverScore
+		switch winnerSlot {
+		case match.Slot1:
+			score = s.walkoverScore
 			m2.Withdrawn = true
-		} else if winnerSlot == match.Slot2 {
-			score = walkoverScore.Invert()
+		case match.Slot2:
+			score = s.walkoverScore.Invert()
 			m1.Withdrawn = true
 		}
 	}

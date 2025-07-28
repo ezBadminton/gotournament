@@ -17,13 +17,21 @@ type MatchMetricRanking struct {
 
 	entrySlots []*Slot
 	players    []Player
-	matches    []*Match
 
-	walkoverScore Score
+	metricSource matchMetricSource
+}
+
+type matchMetricSource interface {
+	// Creates a MatchMetrics struct for each player in a set of matches.
+	// If the players slice is not nil/empty only the matches where both
+	// opponents are in the slice are counted.
+	CreateMetrics(
+		players []Player,
+	) map[Player]*MatchMetrics
 }
 
 func (r *MatchMetricRanking) updateRanks() {
-	metrics := CreateMetrics(r.matches, nil, r.walkoverScore)
+	metrics := r.metricSource.CreateMetrics(nil)
 	addZeroMetrics(metrics, r.players)
 
 	r.Metrics = metrics
@@ -114,9 +122,8 @@ func (r *MatchMetricRanking) breakTie(tie []Player) [][]Player {
 // [[p1, p2]] is returned. Otherwise [[winner],[loser]].
 func (r *MatchMetricRanking) breakTwoWayTie(p1, p2 Player) [][]Player {
 	metrics := r.Metrics
-	matches := r.matches
 	tie := []Player{p1, p2}
-	directMetrics := CreateMetrics(matches, tie, r.walkoverScore)
+	directMetrics := r.metricSource.CreateMetrics(tie)
 	addZeroMetrics(directMetrics, tie)
 
 	metricSorted := sortByMetric(tie, directMetrics, func(m *MatchMetrics) int { return m.Wins })
@@ -173,8 +180,7 @@ func sortByMetric(players []Player, metrics map[Player]*MatchMetrics, getter fun
 
 func createMatchMetricRanking(
 	entries Ranking,
-	matches []*Match,
-	walkoverScore Score,
+	metricSource matchMetricSource,
 	requiredUntiedRanks int,
 	rankingGraph *RankingGraph,
 ) *MatchMetricRanking {
@@ -192,8 +198,7 @@ func createMatchMetricRanking(
 		BaseTieableRanking: NewBaseTieableRanking(requiredUntiedRanks),
 		entrySlots:         entrySlots,
 		players:            players,
-		matches:            matches,
-		walkoverScore:      walkoverScore,
+		metricSource:       metricSource,
 	}
 	ranking.updateRanks()
 
@@ -211,10 +216,14 @@ func NewRoundRobinRanking(
 	walkoverScore Score,
 	rankingGraph *RankingGraph,
 ) *MatchMetricRanking {
+	metricSource := &baseMatchMetricSource{
+		matches:       matches,
+		walkoverScore: walkoverScore,
+	}
+
 	return createMatchMetricRanking(
 		entries,
-		matches,
-		walkoverScore,
+		metricSource,
 		0,
 		rankingGraph,
 	)
@@ -222,14 +231,22 @@ func NewRoundRobinRanking(
 
 func NewCrossGroupRanking(
 	entries Ranking,
+	groups []*RoundRobin,
 	matches []*Match,
 	walkoverScore Score,
 	numQualifications int,
 ) *MatchMetricRanking {
+	metricSource := &crossGroupMatchMetricSource{
+		groups: groups,
+		baseMatchMetricSource: baseMatchMetricSource{
+			matches:       matches,
+			walkoverScore: walkoverScore,
+		},
+	}
+
 	return createMatchMetricRanking(
 		entries,
-		matches,
-		walkoverScore,
+		metricSource,
 		numQualifications,
 		nil,
 	)

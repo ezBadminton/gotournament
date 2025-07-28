@@ -39,6 +39,7 @@ func (t *GroupPhase) initTournament(
 
 	crossGroupRanking := NewCrossGroupRanking(
 		entries,
+		t.Groups,
 		matchList.Matches,
 		walkoverScore,
 		numQualifications,
